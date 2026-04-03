@@ -4,5 +4,8 @@ __pycache__/
 *.db
 .DS_Store
 *.png
-*.md
+COMO_RODAR.md
+CONTEXTO_PROJETO.md
+DECISOES_ARQUITETURA.md
+DEPLOY_OPCOES.md
 *.docx
