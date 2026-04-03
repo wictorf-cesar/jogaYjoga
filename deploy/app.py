@@ -1,15 +1,20 @@
+import os
 import re
 import sqlite3
 from datetime import datetime
+from pathlib import Path
 
 import folium
 import streamlit as st
+
+# Diretório deste arquivo (funciona local e no Streamlit Cloud)
+BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 from geopy.exc import GeocoderTimedOut
 from geopy.geocoders import Nominatim
 from streamlit_folium import st_folium
 
 # --- Config ---
-DB_PATH = "quadras.db"
+DB_PATH = str(BASE_DIR / "quadras.db")
 RECIFE_CENTER = [-8.0476, -34.877]
 
 st.set_page_config(page_title="Joga y Joga", page_icon="⚽", layout="wide")
@@ -113,7 +118,7 @@ def deletar_quadra(quadra_id):
 # --- UI ---
 col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
 with col_logo2:
-    st.image("logo.png", width=300)
+    st.image(str(BASE_DIR / "logo.png"), width=300)
     st.caption("Encontre e cadastre quadras esportivas em Recife")
 
 st.divider()
