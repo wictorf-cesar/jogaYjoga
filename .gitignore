@@ -3,7 +3,9 @@ __pycache__/
 *.pyc
 *.db
 .DS_Store
-*.png
+# PNGs locais (screenshots etc)
+/*.png
+frontend/logo.png
 COMO_RODAR.md
 CONTEXTO_PROJETO.md
 DECISOES_ARQUITETURA.md

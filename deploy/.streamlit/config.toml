@@ -1,0 +1,10 @@
+[theme]
+# Laranja da identidade visual (botões, links, destaques)
+primaryColor = "#E86A10"
+# Fundo azul marinho escuro (base da logo)
+backgroundColor = "#FFFFFF"
+# Sidebar em azul marinho um pouco mais claro
+secondaryBackgroundColor = "#FFF3E8"
+# Texto claro para contrastar com fundo escuro
+textColor = "#1B2A4A"
+font = "sans serif"
