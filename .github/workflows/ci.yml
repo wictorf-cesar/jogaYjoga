@@ -15,23 +15,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Usa head_ref em PRs para permitir o push de volta
           ref: ${{ github.head_ref }}
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          enable-cache: true
-          python-version-file: "pyproject.toml"
+          python-version: '3.10' 
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff bandit
+          # Se precisar de outras dependências para o bandit/ruff rodarem:
+          # pip install -r requirements.txt
 
       - name: Auto-fix & Lint
         run: |
-          uv run ruff format .
-          uv run ruff check . --fix --unsafe-fixes 
-          uv run bandit -r app/
+          # O ruff e bandit agora são chamados diretamente
+          ruff format .
+          ruff check . --fix --unsafe-fixes 
+          bandit -r app/
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "style: auto-fix and linting"
-          skip_fetch: false 
