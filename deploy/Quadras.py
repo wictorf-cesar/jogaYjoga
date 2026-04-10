@@ -6,12 +6,13 @@ from pathlib import Path
 
 import folium
 import streamlit as st
-
-# Diretório deste arquivo (funciona local e no Streamlit Cloud)
-BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 from geopy.exc import GeocoderTimedOut
 from geopy.geocoders import Nominatim
 from streamlit_folium import st_folium
+
+# Diretório deste arquivo (funciona local e no Streamlit Cloud)
+BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+
 
 # --- Config ---
 DB_PATH = str(BASE_DIR / "quadras.db")
