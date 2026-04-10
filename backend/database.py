@@ -10,7 +10,6 @@ Base = declarative_base()
 
 def init_db():
     from models import Quadra  # noqa: F401
-
     Base.metadata.create_all(bind=engine)
 
 

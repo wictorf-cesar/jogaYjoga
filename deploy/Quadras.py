@@ -4,16 +4,14 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from geopy.exc import GeocoderTimedOut
-from geopy.geocoders import Nominatim
-from streamlit_folium import st_folium
-
 import folium
 import streamlit as st
 
 # Diretório deste arquivo (funciona local e no Streamlit Cloud)
 BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
-
+from geopy.exc import GeocoderTimedOut
+from geopy.geocoders import Nominatim
+from streamlit_folium import st_folium
 
 # --- Config ---
 DB_PATH = str(BASE_DIR / "quadras.db")
@@ -103,9 +101,7 @@ def criar_quadra(nome, endereco, esporte):
 def listar_quadras(esporte=None):
     conn = get_db()
     if esporte and esporte != "todos":
-        rows = conn.execute(
-            "SELECT * FROM quadras WHERE esporte = ?", (esporte.lower(),)
-        ).fetchall()
+        rows = conn.execute("SELECT * FROM quadras WHERE esporte = ?", (esporte.lower(),)).fetchall()
     else:
         rows = conn.execute("SELECT * FROM quadras").fetchall()
     conn.close()
@@ -132,12 +128,8 @@ st.sidebar.header("📋 Cadastrar nova quadra")
 
 with st.sidebar.form("form_quadra"):
     nome = st.text_input("Nome da quadra")
-    endereco = st.text_input(
-        "Endereço", placeholder="Ex: Rua da Aurora, 500, Boa Vista"
-    )
-    esporte = st.selectbox(
-        "Esporte", ["futebol", "vôlei", "basquete", "tênis", "futsal", "outro"]
-    )
+    endereco = st.text_input("Endereço", placeholder="Ex: Rua da Aurora, 500, Boa Vista")
+    esporte = st.selectbox("Esporte", ["futebol", "vôlei", "basquete", "tênis", "futsal", "outro"])
     submitted = st.form_submit_button("Cadastrar", use_container_width=True)
 
     if submitted:
@@ -187,9 +179,9 @@ if quadras:
             geo = "📍" if q.get("latitude") else "⚠️ sem localização"
             st.markdown(
                 f"""
-                **{q["nome"]}**  
-                🏅 {q["esporte"]}  
-                {geo} {q["endereco"]}
+                **{q['nome']}**  
+                🏅 {q['esporte']}  
+                {geo} {q['endereco']}
                 """
             )
 else:

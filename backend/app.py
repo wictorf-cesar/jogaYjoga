@@ -16,9 +16,9 @@ geocoder = Nominatim(user_agent="jogayjoga-mvp", timeout=10)
 
 def limpar_endereco(endereco: str) -> str:
     """Remove CEP, traços decorativos e espaços extras."""
-    limpo = re.sub(r"\d{5}-?\d{3}", "", endereco)  # remove CEP
-    limpo = limpo.replace(" - ", ", ")  # "Recife - PE" → "Recife, PE"
-    limpo = re.sub(r",\s*,", ",", limpo)  # vírgulas duplas
+    limpo = re.sub(r"\d{5}-?\d{3}", "", endereco)   # remove CEP
+    limpo = limpo.replace(" - ", ", ")                # "Recife - PE" → "Recife, PE"
+    limpo = re.sub(r",\s*,", ",", limpo)              # vírgulas duplas
     limpo = re.sub(r"\s+", " ", limpo).strip().rstrip(",")
     return limpo
 

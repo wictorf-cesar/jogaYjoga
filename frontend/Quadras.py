@@ -23,12 +23,8 @@ st.sidebar.header("📋 Cadastrar nova quadra")
 
 with st.sidebar.form("form_quadra"):
     nome = st.text_input("Nome da quadra")
-    endereco = st.text_input(
-        "Endereço", placeholder="Ex: Rua da Aurora, 500, Boa Vista"
-    )
-    esporte = st.selectbox(
-        "Esporte", ["futebol", "vôlei", "basquete", "tênis", "futsal", "outro"]
-    )
+    endereco = st.text_input("Endereço", placeholder="Ex: Rua da Aurora, 500, Boa Vista")
+    esporte = st.selectbox("Esporte", ["futebol", "vôlei", "basquete", "tênis", "futsal", "outro"])
     submitted = st.form_submit_button("Cadastrar", use_container_width=True)
 
     if submitted:
@@ -96,10 +92,9 @@ if quadras:
             geo = "📍" if q.get("latitude") else "⚠️ sem localização"
             st.markdown(
                 f"""
-                **{q["nome"]}**  
-                🏅 {q["esporte"]}  
-                {geo} {q["endereco"]}
-                """
-            )
+                **{q['nome']}**  
+                🏅 {q['esporte']}  
+                {geo} {q['endereco']}
+                """)
 else:
     st.info("Nenhuma quadra cadastrada ainda. Use o formulário na sidebar.")
