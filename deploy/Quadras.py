@@ -4,14 +4,16 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
+from geopy.exc import GeocoderTimedOut
+from geopy.geocoders import Nominatim
+from streamlit_folium import st_folium
+
 import folium
 import streamlit as st
 
 # Diretório deste arquivo (funciona local e no Streamlit Cloud)
 BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
-from geopy.exc import GeocoderTimedOut
-from geopy.geocoders import Nominatim
-from streamlit_folium import st_folium
+
 
 # --- Config ---
 DB_PATH = str(BASE_DIR / "quadras.db")
