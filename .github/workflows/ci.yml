@@ -1,12 +1,49 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Ensures it works for both PRs and direct pushes
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' 
+          cache: 'pip'
+
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff bandit
+
+      - name: Auto-fix & Lint
+        run: |
+          ruff format .
+          ruff check . --fix --unsafe-fixes 
+          # bandit usually doesn't "fix", just reports
+          bandit -r app/ 
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: auto-fix and linting"
+
   check:
     name: branch-check
+    needs: lint-and-format 
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
