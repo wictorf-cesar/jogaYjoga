@@ -121,7 +121,9 @@ def seed():
                 latitude=lat,
                 longitude=lng,
                 cobertura=parse_cobertura(row["COBERTURA"]),
-                qtd_quadras=int(row["QTD QUADRAS"]) if row["QTD QUADRAS"].strip() else 1,
+                qtd_quadras=int(row["QTD QUADRAS"])
+                if row["QTD QUADRAS"].strip()
+                else 1,
                 preco_hora=random.choice([80, 90, 100, 120, 150]),
                 esportes=esportes_row,
             )
@@ -169,7 +171,7 @@ def seed():
 
     db.flush()
 
-    print(f"👤 Usuários: atleta@demo.com / admin@demo.com (senha: 123456)")
+    print("👤 Usuários: atleta@demo.com / admin@demo.com (senha: 123456)")
     print(f"🏟️ Proprietário vinculado a {min(6, len(espacos_criados))} espaços")
 
     # ── 4. Reservas do atleta (últimos 30 dias + próximas) ───────────────────
@@ -262,16 +264,18 @@ def seed():
             id_usuario=atleta.id_usuario,
             id_espaco=esp.id_espaco,
             nota=random.choice([4, 4, 5, 5, 5]),
-            comentario=random.choice([
-                "Ótima quadra, bem cuidada!",
-                "Gostei muito, vou voltar.",
-                "Boa estrutura, recomendo.",
-                "Excelente localização.",
-                "Quadra em bom estado, preço justo.",
-                "Muito boa, iluminação top.",
-                "Areia limpa, atendimento nota 10.",
-                "Ambiente agradável, voltarei com certeza.",
-            ]),
+            comentario=random.choice(
+                [
+                    "Ótima quadra, bem cuidada!",
+                    "Gostei muito, vou voltar.",
+                    "Boa estrutura, recomendo.",
+                    "Excelente localização.",
+                    "Quadra em bom estado, preço justo.",
+                    "Muito boa, iluminação top.",
+                    "Areia limpa, atendimento nota 10.",
+                    "Ambiente agradável, voltarei com certeza.",
+                ]
+            ),
         )
         db.add(avaliacao)
         avaliacoes_criadas += 1
