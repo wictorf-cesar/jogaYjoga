@@ -1,16 +1,16 @@
-import streamlit as st
-import requests
+import os
+
 import folium
+import requests
+import streamlit as st
 from streamlit_folium import st_folium
 
-API_URL = "http://localhost:5000"
-
-# Centro de Recife
+API_URL = os.environ.get("API_URL", "http://localhost:5000")
 RECIFE_CENTER = [-8.0476, -34.877]
 
 st.set_page_config(page_title="Joga y Joga", page_icon="⚽", layout="wide")
 
-# --- Header com logo centralizada ---
+# --- Header ---
 col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
 with col_logo2:
     st.image("logo.png", width=300)
@@ -18,88 +18,128 @@ with col_logo2:
 
 st.divider()
 
-# --- Sidebar: cadastro de quadra ---
-st.sidebar.header("📋 Cadastrar nova quadra")
+# --- API helpers ---
+def api_get(path, params=None):
+    try:
+        resp = requests.get(f"{API_URL}{path}", params=params, timeout=15)
+        resp.raise_for_status()
+        return resp.json()
+    except requests.ConnectionError:
+        st.warning("Backend offline — verifique se o Flask está rodando.")
+        return []
+    except Exception as e:
+        st.error(f"Erro: {e}")
+        return []
 
-with st.sidebar.form("form_quadra"):
-    nome = st.text_input("Nome da quadra")
+
+def api_post(path, data):
+    try:
+        resp = requests.post(f"{API_URL}{path}", json=data, timeout=15)
+        return resp.json(), resp.status_code
+    except requests.ConnectionError:
+        return {"erro": "Sem conexão com a API"}, 503
+
+
+# --- Funções ---
+def listar_esportes():
+    data = api_get("/esportes")
+    return [e["nome"] for e in data] if data else []
+
+
+def listar_espacos(esporte=None):
+    params = {}
+    if esporte and esporte != "todos":
+        params["esporte"] = esporte
+    return api_get("/espacos", params=params)
+
+
+# --- Sidebar: cadastro ---
+st.sidebar.header("📋 Cadastrar novo espaço")
+
+esportes_disponiveis = listar_esportes()
+if not esportes_disponiveis:
+    esportes_disponiveis = ["Futebol Society", "Vôlei De Praia", "Futevôlei", "Beach Tênnis", "Futsal"]
+
+with st.sidebar.form("form_espaco"):
+    nome = st.text_input("Nome do espaço")
     endereco = st.text_input(
         "Endereço", placeholder="Ex: Rua da Aurora, 500, Boa Vista"
     )
-    esporte = st.selectbox(
-        "Esporte", ["futebol", "vôlei", "basquete", "tênis", "futsal", "outro"]
-    )
+    esportes_selecionados = st.multiselect("Esportes", esportes_disponiveis)
     submitted = st.form_submit_button("Cadastrar", use_container_width=True)
 
     if submitted:
         if not nome or not endereco:
             st.error("Preencha nome e endereço.")
+        elif not esportes_selecionados:
+            st.error("Selecione pelo menos um esporte.")
         else:
-            try:
-                resp = requests.post(
-                    f"{API_URL}/quadras",
-                    json={"nome": nome, "endereco": endereco, "esporte": esporte},
-                    timeout=15,
-                )
-                if resp.status_code == 201:
-                    st.success(f"Quadra '{nome}' cadastrada!")
-                else:
-                    st.error(f"Erro: {resp.json().get('erro', 'desconhecido')}")
-            except requests.ConnectionError:
-                st.error("Não consegui conectar na API. O backend tá rodando?")
+            result, status = api_post("/espacos", {
+                "nome": nome,
+                "endereco": endereco,
+                "esportes": esportes_selecionados,
+            })
+            if status == 201:
+                st.success(f"Espaço '{nome}' cadastrado!")
+            else:
+                st.warning(f"Erro: {result.get('erro', '')}")
 
 # --- Filtro + Mapa ---
 col_filtro, col_mapa = st.columns([1, 3])
 
 with col_filtro:
     st.subheader("🔍 Filtros")
-    filtro_esporte = st.selectbox(
-        "Esporte",
-        ["todos", "futebol", "vôlei", "basquete", "tênis", "futsal", "outro"],
-    )
+    opcoes_filtro = ["todos"] + esportes_disponiveis
+    filtro_esporte = st.selectbox("Esporte", opcoes_filtro)
 
-# --- Buscar quadras ---
-try:
-    params = {}
-    if filtro_esporte != "todos":
-        params["esporte"] = filtro_esporte
+espacos = listar_espacos(filtro_esporte)
 
-    resp = requests.get(f"{API_URL}/quadras", params=params, timeout=5)
-    quadras = resp.json() if resp.status_code == 200 else []
-except requests.ConnectionError:
-    quadras = []
-    st.warning("Backend offline — mostrando mapa vazio.")
-
-# --- Mapa ---
 with col_mapa:
     mapa = folium.Map(location=RECIFE_CENTER, zoom_start=13)
 
-    for q in quadras:
-        if q.get("latitude") and q.get("longitude"):
+    for e in espacos:
+        lat = e.get("latitude")
+        lng = e.get("longitude")
+        if lat and lng:
+            esportes_str = ", ".join(e.get("esportes", []))
+            endereco_str = ""
+            if e.get("endereco"):
+                end = e["endereco"]
+                parts = [end.get("logradouro"), end.get("bairro"), end.get("municipio")]
+                endereco_str = ", ".join(p for p in parts if p)
+
             folium.Marker(
-                location=[q["latitude"], q["longitude"]],
-                popup=f"<b>{q['nome']}</b><br>🏅 {q['esporte']}<br>📍 {q['endereco']}",
-                tooltip=q["nome"],
+                location=[lat, lng],
+                popup=f"<b>{e['nome']}</b><br>🏅 {esportes_str}<br>📍 {endereco_str}",
+                tooltip=e["nome"],
                 icon=folium.Icon(color="orange", icon="futbol", prefix="fa"),
             ).add_to(mapa)
 
     st_folium(mapa, width=None, height=500, use_container_width=True)
 
-# --- Lista de quadras ---
+# --- Lista ---
 st.divider()
 
-if quadras:
-    st.subheader(f"📋 {len(quadras)} quadra(s) encontrada(s)")
+if espacos:
+    st.subheader(f"📋 {len(espacos)} espaço(s) encontrado(s)")
     cols = st.columns(3)
-    for i, q in enumerate(quadras):
+    for i, e in enumerate(espacos):
         with cols[i % 3]:
-            geo = "📍" if q.get("latitude") else "⚠️ sem localização"
+            lat = e.get("latitude")
+            geo = "📍" if lat else "⚠️ sem localização"
+            esportes_str = ", ".join(e.get("esportes", []))
+            endereco_str = ""
+            if e.get("endereco"):
+                end = e["endereco"]
+                parts = [end.get("logradouro"), end.get("bairro"), end.get("municipio")]
+                endereco_str = ", ".join(p for p in parts if p)
+
             st.markdown(
                 f"""
-                **{q["nome"]}**  
-                🏅 {q["esporte"]}  
-                {geo} {q["endereco"]}
+                **{e["nome"]}**  
+                🏅 {esportes_str}  
+                {geo} {endereco_str}
                 """
             )
 else:
-    st.info("Nenhuma quadra cadastrada ainda. Use o formulário na sidebar.")
+    st.info("Nenhum espaço encontrado. Use o formulário na sidebar para cadastrar.")
