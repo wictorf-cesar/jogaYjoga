@@ -595,6 +595,7 @@ def health():
 
 # ── Auto-seed on startup (for Render free tier without shell) ────────────────
 
+
 def auto_seed():
     """Creates tables and seeds data if espacos table is empty."""
     init_db()
@@ -605,6 +606,7 @@ def auto_seed():
             db.close()
             print("🌱 DB vazio, rodando seed...")
             from seed import seed
+
             seed()
         else:
             print(f"✅ DB já populado ({count} espaços)")
