@@ -1,7 +1,13 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "sqlite:///jogayjoga.db"
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///jogayjoga.db")
+
+# Render usa "postgres://" mas SQLAlchemy precisa de "postgresql://"
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(bind=engine)

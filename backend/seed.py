@@ -84,9 +84,10 @@ def parse_cobertura(raw: str) -> str:
 
 
 def seed():
-    # Recria tabelas
+    # Recria tabelas (checkfirst evita erros com ENUMs no Postgres)
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    print("📦 Tabelas recriadas")
 
     db = SessionLocal()
     esportes_cache: dict[str, Esporte] = {}
