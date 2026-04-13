@@ -5,7 +5,6 @@ Uso: python3 seed.py
 
 import csv
 import re
-import sys
 from pathlib import Path
 
 from database import Base, SessionLocal, engine
@@ -124,7 +123,9 @@ def seed():
                 latitude=lat,
                 longitude=lng,
                 cobertura=parse_cobertura(row["COBERTURA"]),
-                qtd_quadras=int(row["QTD QUADRAS"]) if row["QTD QUADRAS"].strip() else 1,
+                qtd_quadras=int(row["QTD QUADRAS"])
+                if row["QTD QUADRAS"].strip()
+                else 1,
                 esportes=esportes_row,
             )
             db.add(espaco)

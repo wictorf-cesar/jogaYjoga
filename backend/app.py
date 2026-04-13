@@ -1,6 +1,5 @@
 import re
 from datetime import date, datetime, timedelta
-from functools import wraps
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -194,9 +193,7 @@ def get_estatisticas_usuario(user_id):
         )
 
         # Quadra mais frequente (favorita)
-        todas_reservas = (
-            db.query(Reserva).filter(Reserva.id_usuario == user_id).all()
-        )
+        todas_reservas = db.query(Reserva).filter(Reserva.id_usuario == user_id).all()
         freq: dict[int, int] = {}
         for r in todas_reservas:
             freq[r.id_espaco] = freq.get(r.id_espaco, 0) + 1
@@ -217,15 +214,17 @@ def get_estatisticas_usuario(user_id):
             else:
                 break
 
-        return jsonify({
-            "partidas_mes": partidas,
-            "horas_mes": round(horas, 1),
-            "gasto_mes": round(gasto, 2),
-            "quadras_visitadas": quadras_visitadas,
-            "media_avaliacao": round(float(avg), 1) if avg else None,
-            "quadra_favorita": quadra_fav,
-            "sequencia_dias": sequencia,
-        })
+        return jsonify(
+            {
+                "partidas_mes": partidas,
+                "horas_mes": round(horas, 1),
+                "gasto_mes": round(gasto, 2),
+                "quadras_visitadas": quadras_visitadas,
+                "media_avaliacao": round(float(avg), 1) if avg else None,
+                "quadra_favorita": quadra_fav,
+                "sequencia_dias": sequencia,
+            }
+        )
     finally:
         db.close()
 
@@ -481,11 +480,7 @@ def admin_dashboard(user_id):
     db = get_db()
     try:
         # Verifica se é proprietário
-        prop = (
-            db.query(Proprietario)
-            .filter(Proprietario.id_usuario == user_id)
-            .first()
-        )
+        prop = db.query(Proprietario).filter(Proprietario.id_usuario == user_id).first()
         if not prop:
             return jsonify({"erro": "Usuário não é proprietário"}), 403
 
@@ -517,13 +512,15 @@ def admin_dashboard(user_id):
         for esp in espacos:
             res_esp = [r for r in reservas_mes if r.id_espaco == esp.id_espaco]
             lucro_esp = sum(float(r.valor_total or 0) for r in res_esp)
-            por_espaco.append({
-                "id": esp.id_espaco,
-                "nome": esp.nome_espaco,
-                "alugueis": len(res_esp),
-                "lucro": round(lucro_esp, 2),
-                "esportes": [e.nome_esporte for e in esp.esportes],
-            })
+            por_espaco.append(
+                {
+                    "id": esp.id_espaco,
+                    "nome": esp.nome_espaco,
+                    "alugueis": len(res_esp),
+                    "lucro": round(lucro_esp, 2),
+                    "esportes": [e.nome_esporte for e in esp.esportes],
+                }
+            )
 
         # Aluguéis por dia da semana
         dias = {i: 0 for i in range(7)}  # 0=seg, 6=dom
@@ -533,13 +530,15 @@ def admin_dashboard(user_id):
         nomes_dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
         por_dia = {nomes_dias[i]: dias[i] for i in range(7)}
 
-        return jsonify({
-            "total_espacos": len(espacos),
-            "alugueis_mes": len(reservas_mes),
-            "lucro_mes": round(lucro, 2),
-            "por_espaco": por_espaco,
-            "por_dia_semana": por_dia,
-        })
+        return jsonify(
+            {
+                "total_espacos": len(espacos),
+                "alugueis_mes": len(reservas_mes),
+                "lucro_mes": round(lucro, 2),
+                "por_espaco": por_espaco,
+                "por_dia_semana": por_dia,
+            }
+        )
     finally:
         db.close()
 
@@ -565,16 +564,22 @@ def listar_quadras_compat():
         for e in espacos:
             endereco_str = ""
             if e.endereco:
-                parts = [e.endereco.logradouro, e.endereco.bairro, e.endereco.nome_municipio]
+                parts = [
+                    e.endereco.logradouro,
+                    e.endereco.bairro,
+                    e.endereco.nome_municipio,
+                ]
                 endereco_str = ", ".join(p for p in parts if p)
-            result.append({
-                "id": e.id_espaco,
-                "nome": e.nome_espaco,
-                "endereco": endereco_str,
-                "esporte": ", ".join(esp.nome_esporte for esp in e.esportes),
-                "latitude": float(e.latitude) if e.latitude else None,
-                "longitude": float(e.longitude) if e.longitude else None,
-            })
+            result.append(
+                {
+                    "id": e.id_espaco,
+                    "nome": e.nome_espaco,
+                    "endereco": endereco_str,
+                    "esporte": ", ".join(esp.nome_esporte for esp in e.esportes),
+                    "latitude": float(e.latitude) if e.latitude else None,
+                    "longitude": float(e.longitude) if e.longitude else None,
+                }
+            )
         return jsonify(result)
     finally:
         db.close()

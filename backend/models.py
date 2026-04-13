@@ -5,7 +5,6 @@ from sqlalchemy import (
     Date,
     DateTime,
     Enum,
-    Float,
     ForeignKey,
     Integer,
     Numeric,
@@ -73,8 +72,12 @@ class Usuario(Base):
             "nome": self.nome_completo,
             "email": self.email,
             "telefone": self.telefone,
-            "data_nascimento": self.data_nascimento.isoformat() if self.data_nascimento else None,
-            "data_cadastro": self.data_cadastro.isoformat() if self.data_cadastro else None,
+            "data_nascimento": self.data_nascimento.isoformat()
+            if self.data_nascimento
+            else None,
+            "data_cadastro": self.data_cadastro.isoformat()
+            if self.data_cadastro
+            else None,
             "is_proprietario": self.proprietario is not None,
         }
 
@@ -107,7 +110,9 @@ class Esporte(Base):
     id_esporte = Column(Integer, primary_key=True, autoincrement=True)
     nome_esporte = Column(String(50), unique=True, nullable=False)
 
-    espacos = relationship("Espaco", secondary=espaco_esportes, back_populates="esportes")
+    espacos = relationship(
+        "Espaco", secondary=espaco_esportes, back_populates="esportes"
+    )
 
     def to_dict(self):
         return {
@@ -133,7 +138,9 @@ class Espaco(Base):
 
     endereco = relationship("Endereco")
     proprietario = relationship("Proprietario", back_populates="espacos")
-    esportes = relationship("Esporte", secondary=espaco_esportes, back_populates="espacos")
+    esportes = relationship(
+        "Esporte", secondary=espaco_esportes, back_populates="espacos"
+    )
     reservas = relationship("Reserva", back_populates="espaco")
     avaliacoes = relationship("Avaliacao", back_populates="espaco")
 
