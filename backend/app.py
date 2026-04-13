@@ -597,19 +597,21 @@ def health():
 
 
 def auto_seed():
-    """Creates tables and seeds data if espacos table is empty."""
+    """Creates tables and seeds data if DB is missing demo users."""
     init_db()
     db = SessionLocal()
     try:
-        count = db.query(Espaco).count()
-        if count == 0:
+        # Checa se os dados demo existem (não só espaços, mas usuários também)
+        user_count = db.query(Usuario).count()
+        espaco_count = db.query(Espaco).count()
+        if user_count == 0 or espaco_count == 0:
             db.close()
-            print("🌱 DB vazio, rodando seed...")
+            print("🌱 DB sem dados demo, rodando seed...")
             from seed import seed
 
             seed()
         else:
-            print(f"✅ DB já populado ({count} espaços)")
+            print(f"✅ DB já populado ({espaco_count} espaços, {user_count} usuários)")
             db.close()
     except Exception as e:
         db.close()
