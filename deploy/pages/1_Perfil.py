@@ -1,8 +1,6 @@
 import os
-from datetime import date, timedelta
 
 import pandas as pd
-import plotly.express as px
 import requests
 import streamlit as st
 
@@ -20,6 +18,7 @@ CORES_ESPORTE = {
 
 
 # ── API helpers ──────────────────────────────────────────────────────────────
+
 
 def api_get(path, params=None):
     try:
@@ -92,6 +91,7 @@ div.element-container:has(#{anchor_id}) + div.element-container button:hover {{
 # TELA 1: SELEÇÃO — LOGIN / CADASTRO
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 def tela_selecao():
     st.title("👤 Perfil")
     st.write("Faça login ou crie sua conta para acessar o **Joga y Joga**:")
@@ -109,7 +109,9 @@ def tela_selecao():
                 if not email or not senha:
                     st.error("Preencha email e senha.")
                 else:
-                    result, status = api_post("/login", {"email": email, "senha": senha})
+                    result, status = api_post(
+                        "/login", {"email": email, "senha": senha}
+                    )
                     if status == 200 and result:
                         st.session_state["user"] = result
                         if result.get("is_proprietario"):
@@ -150,6 +152,7 @@ def tela_selecao():
 # TELA 2: ATLETA (DASHBOARD COM DADOS REAIS)
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 def tela_atleta():
     user = st.session_state.get("user")
     if not user:
@@ -166,15 +169,23 @@ def tela_atleta():
         st.rerun()
 
     st.markdown(SHARED_CSS, unsafe_allow_html=True)
-    st.markdown(VOLTAR_CSS.format(anchor_id="ancora-voltar-atleta"), unsafe_allow_html=True)
+    st.markdown(
+        VOLTAR_CSS.format(anchor_id="ancora-voltar-atleta"), unsafe_allow_html=True
+    )
 
     # Busca dados da API
     stats = api_get(f"/usuarios/{user_id}/estatisticas") or {}
     reservas_prox = api_get(f"/usuarios/{user_id}/reservas", {"tipo": "proximas"}) or []
-    reservas_hist = api_get(f"/usuarios/{user_id}/reservas", {"tipo": "historico"}) or []
+    reservas_hist = (
+        api_get(f"/usuarios/{user_id}/reservas", {"tipo": "historico"}) or []
+    )
 
     # ── Hero ──
-    membro_desde = user.get("data_cadastro", "")[:7] if user.get("data_cadastro") else "recém-chegado"
+    membro_desde = (
+        user.get("data_cadastro", "")[:7]
+        if user.get("data_cadastro")
+        else "recém-chegado"
+    )
     quadra_fav = stats.get("quadra_favorita", "—")
 
     st.markdown(
@@ -226,14 +237,18 @@ def tela_atleta():
 
     with col_hist:
         st.markdown(
-            '<div class="sec-title">📋 Histórico de Partidas</div>', unsafe_allow_html=True
+            '<div class="sec-title">📋 Histórico de Partidas</div>',
+            unsafe_allow_html=True,
         )
         if reservas_hist:
             df = pd.DataFrame(
                 {
                     "Data": [r.get("data", "") for r in reservas_hist],
                     "Espaço": [r.get("espaco", "") for r in reservas_hist],
-                    "Horário": [f"{r.get('hora_inicio', '')} - {r.get('hora_fim', '')}" for r in reservas_hist],
+                    "Horário": [
+                        f"{r.get('hora_inicio', '')} - {r.get('hora_fim', '')}"
+                        for r in reservas_hist
+                    ],
                     "Valor": [f"R$ {r.get('valor_total', 0)}" for r in reservas_hist],
                     "Status": [r.get("status", "").capitalize() for r in reservas_hist],
                 }
@@ -246,6 +261,7 @@ def tela_atleta():
 # ══════════════════════════════════════════════════════════════════════════════
 # TELA 3: ADMINISTRADOR (DASHBOARD COM DADOS REAIS)
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 def tela_admin():
     user = st.session_state.get("user")
@@ -263,7 +279,9 @@ def tela_admin():
         st.rerun()
 
     st.markdown(SHARED_CSS, unsafe_allow_html=True)
-    st.markdown(VOLTAR_CSS.format(anchor_id="ancora-voltar-admin"), unsafe_allow_html=True)
+    st.markdown(
+        VOLTAR_CSS.format(anchor_id="ancora-voltar-admin"), unsafe_allow_html=True
+    )
 
     st.title("📊 Dashboard do Administrador")
     st.divider()
@@ -272,7 +290,9 @@ def tela_admin():
     dashboard = api_get(f"/admin/{user_id}/dashboard")
 
     if not dashboard:
-        st.warning("Não foi possível carregar os dados do dashboard. Verifique se você é proprietário de espaços.")
+        st.warning(
+            "Não foi possível carregar os dados do dashboard. Verifique se você é proprietário de espaços."
+        )
         return
 
     # ── KPIs ──
@@ -326,7 +346,9 @@ def tela_admin():
             use_container_width=True,
             hide_index=True,
             column_config={
-                "Lucro (R$)": st.column_config.NumberColumn("Lucro (R$)", format="R$ %d"),
+                "Lucro (R$)": st.column_config.NumberColumn(
+                    "Lucro (R$)", format="R$ %d"
+                ),
             },
         )
 
