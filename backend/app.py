@@ -593,6 +593,29 @@ def health():
     return jsonify({"status": "ok"})
 
 
-if __name__ == "__main__":
+# ── Auto-seed on startup (for Render free tier without shell) ────────────────
+
+def auto_seed():
+    """Creates tables and seeds data if espacos table is empty."""
     init_db()
+    db = SessionLocal()
+    try:
+        count = db.query(Espaco).count()
+        if count == 0:
+            db.close()
+            print("🌱 DB vazio, rodando seed...")
+            from seed import seed
+            seed()
+        else:
+            print(f"✅ DB já populado ({count} espaços)")
+            db.close()
+    except Exception as e:
+        db.close()
+        print(f"⚠️ Auto-seed falhou: {e}")
+
+
+auto_seed()
+
+
+if __name__ == "__main__":
     app.run(debug=True, port=5000)
