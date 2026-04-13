@@ -24,7 +24,9 @@ def api_get(path, params=None):
         st.error("❌ Não foi possível conectar à API. Tente novamente em instantes.")
         return []
     except requests.Timeout:
-        st.warning("⏳ API demorando para responder (pode estar hibernando). Tente novamente.")
+        st.warning(
+            "⏳ API demorando para responder (pode estar hibernando). Tente novamente."
+        )
         return []
     except Exception as e:
         st.error(f"Erro na API: {e}")
@@ -63,11 +65,14 @@ def listar_esportes():
 
 
 def criar_espaco(nome, endereco, esportes):
-    return api_post("/espacos", {
-        "nome": nome,
-        "endereco": endereco,
-        "esportes": esportes,
-    })
+    return api_post(
+        "/espacos",
+        {
+            "nome": nome,
+            "endereco": endereco,
+            "esportes": esportes,
+        },
+    )
 
 
 # --- UI ---
@@ -84,7 +89,13 @@ st.sidebar.header("📋 Cadastrar novo espaço")
 # Busca esportes disponíveis da API
 esportes_disponiveis = listar_esportes()
 if not esportes_disponiveis:
-    esportes_disponiveis = ["Futebol Society", "Vôlei De Praia", "Futevôlei", "Beach Tênnis", "Futsal"]
+    esportes_disponiveis = [
+        "Futebol Society",
+        "Vôlei De Praia",
+        "Futevôlei",
+        "Beach Tênnis",
+        "Futsal",
+    ]
 
 with st.sidebar.form("form_espaco"):
     nome = st.text_input("Nome do espaço")

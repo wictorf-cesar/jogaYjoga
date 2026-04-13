@@ -18,6 +18,7 @@ with col_logo2:
 
 st.divider()
 
+
 # --- API helpers ---
 def api_get(path, params=None):
     try:
@@ -58,7 +59,13 @@ st.sidebar.header("📋 Cadastrar novo espaço")
 
 esportes_disponiveis = listar_esportes()
 if not esportes_disponiveis:
-    esportes_disponiveis = ["Futebol Society", "Vôlei De Praia", "Futevôlei", "Beach Tênnis", "Futsal"]
+    esportes_disponiveis = [
+        "Futebol Society",
+        "Vôlei De Praia",
+        "Futevôlei",
+        "Beach Tênnis",
+        "Futsal",
+    ]
 
 with st.sidebar.form("form_espaco"):
     nome = st.text_input("Nome do espaço")
@@ -74,11 +81,14 @@ with st.sidebar.form("form_espaco"):
         elif not esportes_selecionados:
             st.error("Selecione pelo menos um esporte.")
         else:
-            result, status = api_post("/espacos", {
-                "nome": nome,
-                "endereco": endereco,
-                "esportes": esportes_selecionados,
-            })
+            result, status = api_post(
+                "/espacos",
+                {
+                    "nome": nome,
+                    "endereco": endereco,
+                    "esportes": esportes_selecionados,
+                },
+            )
             if status == 201:
                 st.success(f"Espaço '{nome}' cadastrado!")
             else:
