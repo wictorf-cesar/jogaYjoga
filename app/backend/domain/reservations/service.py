@@ -21,4 +21,3 @@ def get_owner_reservations(
     reservation_date: date | None = None,
 ) -> list[Reserva]:
     return list_owner_reservations(db, venue_ids, reservation_date)
-

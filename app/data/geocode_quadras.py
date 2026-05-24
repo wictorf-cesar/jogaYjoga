@@ -26,7 +26,9 @@ def build_queries(row: dict[str, str]) -> list[str]:
         f"{name}, {clean_address}, Brasil",
         f"{clean_address}, Brasil",
         f"{expanded_address}, Brasil",
-        f"{name}, {city}, Pernambuco, Brasil" if city else f"{name}, Pernambuco, Brasil",
+        f"{name}, {city}, Pernambuco, Brasil"
+        if city
+        else f"{name}, Pernambuco, Brasil",
     ]
 
 

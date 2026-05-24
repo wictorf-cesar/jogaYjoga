@@ -56,7 +56,9 @@ def find_available_port(host: str, preferred_port: int) -> int:
         return int(port)
 
 
-def start_process(name: str, command: list[str], env: dict[str, str]) -> subprocess.Popen:
+def start_process(
+    name: str, command: list[str], env: dict[str, str]
+) -> subprocess.Popen:
     print(f"[run] starting {name}: {' '.join(command)}", flush=True)
     return subprocess.Popen(command, cwd=ROOT_DIR, env=env)
 

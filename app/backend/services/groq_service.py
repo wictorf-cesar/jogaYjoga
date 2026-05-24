@@ -10,6 +10,7 @@ from typing import Any
 
 from app.backend.utils.logger import log_error, log_event, mask_secret
 
+
 def load_local_env() -> None:
     env_path = Path(__file__).resolve().parents[3] / ".env"
     if not env_path.exists():
@@ -27,8 +28,17 @@ load_local_env()
 
 
 try:
-    from groq import APIConnectionError, APIStatusError, APITimeoutError, Groq, RateLimitError
-except ImportError:  # pragma: no cover - exercised only when dependency is missing locally.
+    from groq import (
+        APIConnectionError,
+        APIStatusError,
+        APITimeoutError,
+        Groq,
+        RateLimitError,
+    )
+except (
+    ImportError
+):  # pragma: no cover - exercised only when dependency is missing locally.
+
     class RateLimitError(Exception):
         pass
 
@@ -94,7 +104,9 @@ Regras:
 
 
 class GroqServiceError(RuntimeError):
-    def __init__(self, message: str, *, code: str, details: dict[str, Any] | None = None):
+    def __init__(
+        self, message: str, *, code: str, details: dict[str, Any] | None = None
+    ):
         super().__init__(message)
         self.code = code
         self.details = details or {}
@@ -127,7 +139,9 @@ def validate_groq_environment() -> None:
     if not api_key:
         log_event("GROQ BLOCKED", "GROQ_API_KEY ausente; nenhuma request sera enviada")
     if Groq is None:
-        log_event("GROQ BLOCKED", "Pacote groq nao instalado; nenhuma request sera enviada")
+        log_event(
+            "GROQ BLOCKED", "Pacote groq nao instalado; nenhuma request sera enviada"
+        )
 
 
 def get_groq_api_key() -> str | None:
@@ -157,7 +171,9 @@ def sanitize_messages(messages: list[dict[str, str]]) -> list[dict[str, str]]:
         sanitized.append(
             {
                 "role": message.get("role", ""),
-                "content": content[:1500] + "...[truncated]" if len(content) > 1500 else content,
+                "content": content[:1500] + "...[truncated]"
+                if len(content) > 1500
+                else content,
             }
         )
     return sanitized
@@ -173,7 +189,9 @@ def extract_json_object(text: str) -> dict[str, Any]:
     except json.JSONDecodeError:
         pass
 
-    fenced_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", cleaned, flags=re.DOTALL)
+    fenced_match = re.search(
+        r"```(?:json)?\s*(\{.*?\})\s*```", cleaned, flags=re.DOTALL
+    )
     if fenced_match:
         try:
             return json.loads(fenced_match.group(1))
@@ -237,12 +255,20 @@ def generate_chat_completion(messages: list[dict[str, str]]) -> dict[str, Any]:
         raise GroqServiceError("Rate limit da Groq.", code="rate_limit") from exc
     except APITimeoutError as exc:
         latency_ms = round((time.perf_counter() - started_at) * 1000, 2)
-        log_error("GROQ ERROR", "Timeout na Groq", exc, latency_ms=latency_ms, timeout_seconds=GROQ_TIMEOUT_SECONDS)
+        log_error(
+            "GROQ ERROR",
+            "Timeout na Groq",
+            exc,
+            latency_ms=latency_ms,
+            timeout_seconds=GROQ_TIMEOUT_SECONDS,
+        )
         raise GroqServiceError("Timeout na Groq.", code="timeout") from exc
     except APIConnectionError as exc:
         latency_ms = round((time.perf_counter() - started_at) * 1000, 2)
         log_error("GROQ ERROR", "Erro de conexao com Groq", exc, latency_ms=latency_ms)
-        raise GroqServiceError("Erro de conexao com Groq.", code="connection_error") from exc
+        raise GroqServiceError(
+            "Erro de conexao com Groq.", code="connection_error"
+        ) from exc
     except APIStatusError as exc:
         latency_ms = round((time.perf_counter() - started_at) * 1000, 2)
         log_error(
@@ -258,8 +284,12 @@ def generate_chat_completion(messages: list[dict[str, str]]) -> dict[str, Any]:
         raise
     except Exception as exc:
         latency_ms = round((time.perf_counter() - started_at) * 1000, 2)
-        log_error("GROQ ERROR", "Erro inesperado chamando Groq", exc, latency_ms=latency_ms)
-        raise GroqServiceError("Erro inesperado chamando Groq.", code="unexpected_error") from exc
+        log_error(
+            "GROQ ERROR", "Erro inesperado chamando Groq", exc, latency_ms=latency_ms
+        )
+        raise GroqServiceError(
+            "Erro inesperado chamando Groq.", code="unexpected_error"
+        ) from exc
 
 
 def test_groq_connection() -> dict[str, Any]:

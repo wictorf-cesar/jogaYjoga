@@ -34,7 +34,6 @@ def init_db() -> None:
     ensure_sqlite_columns()
 
 
-
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:

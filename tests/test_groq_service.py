@@ -5,7 +5,10 @@ from app.backend.services.groq_service import GroqServiceError, extract_json_obj
 
 class GroqServiceTest(unittest.TestCase):
     def test_extract_plain_json(self):
-        self.assertEqual(extract_json_object('{"intent":"CREATE_RESERVATION"}')["intent"], "CREATE_RESERVATION")
+        self.assertEqual(
+            extract_json_object('{"intent":"CREATE_RESERVATION"}')["intent"],
+            "CREATE_RESERVATION",
+        )
 
     def test_extract_fenced_json(self):
         parsed = extract_json_object('```json\n{"intent":"OUT_OF_SCOPE"}\n```')
@@ -24,4 +27,3 @@ class GroqServiceTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

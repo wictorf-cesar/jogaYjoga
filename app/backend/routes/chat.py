@@ -41,4 +41,3 @@ def parse_chat_message(payload: ChatCompletionRequest) -> dict:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={"code": exc.code, "message": str(exc), "details": exc.details},
         ) from exc
-

@@ -127,7 +127,9 @@ def chat_log(tag: str, message: str, **data: object) -> None:
     chat_logger.info(f"[{tag}] {message}{payload}")
 
 
-def chat_log_error(tag: str, message: str, exc: Exception | None = None, **data: object) -> None:
+def chat_log_error(
+    tag: str, message: str, exc: Exception | None = None, **data: object
+) -> None:
     if exc:
         data["error_type"] = type(exc).__name__
         data["error"] = str(exc)
@@ -157,7 +159,13 @@ def log_groq_environment() -> None:
     chat_log("ENV", "GROQ_API_KEY carregada", loaded=bool(GROQ_API_KEY))
     chat_log("ENV", "GROQ_API_KEY length", length=len(GROQ_API_KEY or ""))
     chat_log("ENV", "GROQ_API_KEY masked", key=mask_secret(GROQ_API_KEY))
-    chat_log("ENV", "Groq config", base_url=GROQ_BASE_URL, model=GROQ_MODEL, timeout_seconds=12)
+    chat_log(
+        "ENV",
+        "Groq config",
+        base_url=GROQ_BASE_URL,
+        model=GROQ_MODEL,
+        timeout_seconds=12,
+    )
     validate_groq_environment()
 
 
@@ -174,7 +182,9 @@ async def debug_exception_middleware(request: Request, call_next):
     try:
         response = await call_next(request)
         elapsed_ms = round((time_module.perf_counter() - started_at) * 1000, 2)
-        if request.url.path.startswith("/ai") or request.url.path.startswith("/health/groq"):
+        if request.url.path.startswith("/ai") or request.url.path.startswith(
+            "/health/groq"
+        ):
             chat_log(
                 "HTTP",
                 "Request finalizada",
@@ -274,7 +284,9 @@ def get_current_player(current_user: Usuario = Depends(get_current_user)) -> Usu
     return current_user
 
 
-def clean_optional_text(value: str | None, *, title_case: bool = False, upper: bool = False) -> str | None:
+def clean_optional_text(
+    value: str | None, *, title_case: bool = False, upper: bool = False
+) -> str | None:
     if not value:
         return None
     cleaned = " ".join(value.strip().split())
@@ -341,13 +353,19 @@ def rule_parse_message(message: str) -> ChatParseOut:
     if in_scope:
         if any(term in normalized for term in ["cancelar", "desmarcar"]):
             intent = "cancelar_reserva"
-        elif any(term in normalized for term in ["minhas reservas", "ver reservas", "historico"]):
+        elif any(
+            term in normalized
+            for term in ["minhas reservas", "ver reservas", "historico"]
+        ):
             intent = "ver_reservas"
         elif any(term in normalized for term in ["pix", "pagamento", "comprovante"]):
             intent = "pagamento"
         elif "favorito" in normalized or "favoritar" in normalized:
             intent = "favoritos"
-        elif any(term in normalized for term in ["reservar", "reserva", "marcar", "jogar", "pelada", "horario"]):
+        elif any(
+            term in normalized
+            for term in ["reservar", "reserva", "marcar", "jogar", "pelada", "horario"]
+        ):
             intent = "criar_reserva"
         else:
             intent = "buscar_quadras"
@@ -372,7 +390,12 @@ def rule_parse_message(message: str) -> ChatParseOut:
         cancel_flow=normalized in {"cancelar", "sair", "reiniciar", "nao"},
         normalized_message=normalized,
     )
-    chat_log("INTENT", "Intent detectada por regras", intent=result.intent, parsed=result.model_dump())
+    chat_log(
+        "INTENT",
+        "Intent detectada por regras",
+        intent=result.intent,
+        parsed=result.model_dump(),
+    )
     return result
 
 
@@ -421,7 +444,8 @@ def service_parse_to_chat_out(parsed: dict, message: str) -> ChatParseOut:
         slot_number=parsed.get("slot_number"),
         reservation_id=parsed.get("reservation_id"),
         confirmation=bool(parsed.get("confirmation", False)),
-        cancel_flow=normalize_chat_text(message) in {"cancelar", "sair", "reiniciar", "nao"},
+        cancel_flow=normalize_chat_text(message)
+        in {"cancelar", "sair", "reiniciar", "nao"},
         normalized_message=normalize_chat_text(message),
     )
 
@@ -449,7 +473,11 @@ def groq_parse_message(payload: ChatParseRequest) -> ChatParseOut:
             ]
         )
         result = service_parse_to_chat_out(parsed, payload.message)
-        chat_log("GROQ PARSED", "JSON normalizado para ChatParseOut", parsed=result.model_dump())
+        chat_log(
+            "GROQ PARSED",
+            "JSON normalizado para ChatParseOut",
+            parsed=result.model_dump(),
+        )
         return result
     except GroqServiceError as exc:
         chat_log_error(
@@ -540,9 +568,16 @@ def groq_parse_message(payload: ChatParseRequest) -> ChatParseOut:
             url=f"{GROQ_BASE_URL.rstrip('/')}/chat/completions",
             model=GROQ_MODEL,
             timeout_seconds=12,
-            headers={"Authorization": f"Bearer {mask_secret(GROQ_API_KEY)}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {mask_secret(GROQ_API_KEY)}",
+                "Content-Type": "application/json",
+            },
         )
-        chat_log("GROQ PAYLOAD", "Payload enviado para Groq", payload=sanitize_groq_payload(request_payload))
+        chat_log(
+            "GROQ PAYLOAD",
+            "Payload enviado para Groq",
+            payload=sanitize_groq_payload(request_payload),
+        )
         started_at = time_module.perf_counter()
         response = requests.post(
             f"{GROQ_BASE_URL.rstrip('/')}/chat/completions",
@@ -574,18 +609,31 @@ def groq_parse_message(payload: ChatParseRequest) -> ChatParseOut:
         chat_log("GROQ PARSED", "JSON parseado da resposta", parsed=result.model_dump())
         return result
     except requests.Timeout as exc:
-        chat_log_error("GROQ ERROR", "Timeout chamando Groq; usando regras", exc, timeout_seconds=12)
+        chat_log_error(
+            "GROQ ERROR",
+            "Timeout chamando Groq; usando regras",
+            exc,
+            timeout_seconds=12,
+        )
         return rule_parse_message(payload.message)
     except requests.HTTPError as exc:
         status_code = exc.response.status_code if exc.response is not None else None
         body = exc.response.text if exc.response is not None else None
-        chat_log_error("GROQ ERROR", "HTTP error chamando Groq; usando regras", exc, status_code=status_code, body=body)
+        chat_log_error(
+            "GROQ ERROR",
+            "HTTP error chamando Groq; usando regras",
+            exc,
+            status_code=status_code,
+            body=body,
+        )
         return rule_parse_message(payload.message)
     except requests.RequestException as exc:
         chat_log_error("GROQ ERROR", "Network error chamando Groq; usando regras", exc)
         return rule_parse_message(payload.message)
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
-        chat_log_error("GROQ ERROR", "Erro parseando resposta da Groq; usando regras", exc)
+        chat_log_error(
+            "GROQ ERROR", "Erro parseando resposta da Groq; usando regras", exc
+        )
         return rule_parse_message(payload.message)
 
 
@@ -608,7 +656,9 @@ def geocode_endereco(endereco: Endereco) -> tuple[float | None, float | None]:
         ", ".join(part for part in full_parts if part),
         ", ".join(part for part in city_parts if part),
         ", ".join(
-            part for part in [endereco.nome_municipio, endereco.nome_estado, "Brasil"] if part
+            part
+            for part in [endereco.nome_municipio, endereco.nome_estado, "Brasil"]
+            if part
         ),
     ]
     queries = [query for query in dict.fromkeys(queries) if query]
@@ -729,7 +779,9 @@ def create_residential_address(payload: UserCreate, db: Session) -> int | None:
     return endereco.id_endereco
 
 
-@app.post("/auth/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/auth/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED
+)
 def register(payload: UserCreate, db: Session = Depends(get_db)) -> TokenOut:
     email = payload.email.lower().strip()
     existing_user = db.scalar(select(Usuario).where(Usuario.email == email))
@@ -767,7 +819,9 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> TokenOut:
         ) from exc
 
     db.refresh(user)
-    return TokenOut(access_token=create_access_token(user.id_usuario), user=user_to_out(user))
+    return TokenOut(
+        access_token=create_access_token(user.id_usuario), user=user_to_out(user)
+    )
 
 
 @app.post("/auth/login", response_model=TokenOut)
@@ -780,7 +834,9 @@ def login(payload: UserLogin, db: Session = Depends(get_db)) -> TokenOut:
             detail="Email ou senha invalidos.",
         )
 
-    return TokenOut(access_token=create_access_token(user.id_usuario), user=user_to_out(user))
+    return TokenOut(
+        access_token=create_access_token(user.id_usuario), user=user_to_out(user)
+    )
 
 
 @app.get("/auth/me", response_model=UserOut)
@@ -802,10 +858,14 @@ def parse_chat_message(
     )
     try:
         parsed = groq_parse_message(payload)
-        chat_log("CHAT", "Parse final retornado ao frontend", parsed=parsed.model_dump())
+        chat_log(
+            "CHAT", "Parse final retornado ao frontend", parsed=parsed.model_dump()
+        )
         return parsed
     except Exception as exc:
-        chat_log_error("CHAT ERROR", "Erro global no parser do chatbot; usando regras", exc)
+        chat_log_error(
+            "CHAT ERROR", "Erro global no parser do chatbot; usando regras", exc
+        )
         return rule_parse_message(payload.message)
 
 
@@ -821,9 +881,13 @@ def reserva_to_out(reserva: Reserva) -> ReservaOut:
         hora_fim=reserva.hora_fim,
         status=reserva.status_reserva,
         valor_total=float(reserva.valor_total) if reserva.valor_total else None,
-        pagamento_status=reserva.pagamento.status_pagamento if reserva.pagamento else None,
+        pagamento_status=reserva.pagamento.status_pagamento
+        if reserva.pagamento
+        else None,
         pagamento_metodo=reserva.pagamento.metodo if reserva.pagamento else None,
-        comprovante_url=reserva.pagamento.comprovante_url if reserva.pagamento else None,
+        comprovante_url=reserva.pagamento.comprovante_url
+        if reserva.pagamento
+        else None,
     )
 
 
@@ -880,7 +944,7 @@ def ensure_reservation_inside_business_hours(
         select(HorarioFuncionamento).where(
             HorarioFuncionamento.id_espaco == espaco.id_espaco,
             HorarioFuncionamento.dia_semana == weekday,
-            HorarioFuncionamento.ativo == True,
+            HorarioFuncionamento.ativo,
         )
     ).all()
     if not horarios:
@@ -932,12 +996,16 @@ def my_favoritos(
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[EspacoOut]:
-    espacos = db.scalars(
-        select(Espaco)
-        .join(Favorito, Favorito.id_espaco == Espaco.id_espaco)
-        .where(Favorito.id_usuario == current_user.id_usuario)
-        .order_by(Espaco.nome_espaco)
-    ).unique().all()
+    espacos = (
+        db.scalars(
+            select(Espaco)
+            .join(Favorito, Favorito.id_espaco == Espaco.id_espaco)
+            .where(Favorito.id_usuario == current_user.id_usuario)
+            .order_by(Espaco.nome_espaco)
+        )
+        .unique()
+        .all()
+    )
     return [EspacoOut(**espaco.to_dict()) for espaco in espacos]
 
 
@@ -949,7 +1017,9 @@ def add_favorito(
 ) -> EspacoOut:
     espaco = db.get(Espaco, espaco_id)
     if not espaco:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Quadra nao encontrada.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quadra nao encontrada."
+        )
     existing = db.scalar(
         select(Favorito).where(
             Favorito.id_usuario == current_user.id_usuario,
@@ -987,7 +1057,9 @@ def espaco_detail(
 ) -> EspacoDetailOut:
     espaco = db.get(Espaco, espaco_id)
     if not espaco:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Quadra nao encontrada.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quadra nao encontrada."
+        )
 
     current_user_id = None
     if authorization and authorization.lower().startswith("bearer "):
@@ -999,16 +1071,25 @@ def espaco_detail(
         .order_by(Avaliacao.criado_em.desc())
         .limit(10)
     ).all()
-    avg = db.scalar(select(func.avg(Avaliacao.nota)).where(Avaliacao.id_espaco == espaco_id))
-    total = db.scalar(select(func.count(Avaliacao.id_avaliacao)).where(Avaliacao.id_espaco == espaco_id))
+    avg = db.scalar(
+        select(func.avg(Avaliacao.nota)).where(Avaliacao.id_espaco == espaco_id)
+    )
+    total = db.scalar(
+        select(func.count(Avaliacao.id_avaliacao)).where(
+            Avaliacao.id_espaco == espaco_id
+        )
+    )
     favorito = False
     if current_user_id:
-        favorito = db.scalar(
-            select(Favorito).where(
-                Favorito.id_usuario == current_user_id,
-                Favorito.id_espaco == espaco_id,
+        favorito = (
+            db.scalar(
+                select(Favorito).where(
+                    Favorito.id_usuario == current_user_id,
+                    Favorito.id_espaco == espaco_id,
+                )
             )
-        ) is not None
+            is not None
+        )
 
     return EspacoDetailOut(
         **EspacoOut(**espaco.to_dict()).model_dump(),
@@ -1029,7 +1110,9 @@ def iter_slots(open_at: time, close_at: time) -> list[tuple[time, time]]:
     return slots
 
 
-@app.get("/espacos/{espaco_id}/disponibilidade", response_model=list[AvailabilitySlotOut])
+@app.get(
+    "/espacos/{espaco_id}/disponibilidade", response_model=list[AvailabilitySlotOut]
+)
 def espaco_disponibilidade(
     espaco_id: int,
     data: date,
@@ -1037,16 +1120,20 @@ def espaco_disponibilidade(
 ) -> list[AvailabilitySlotOut]:
     espaco = db.get(Espaco, espaco_id)
     if not espaco:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Quadra nao encontrada.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quadra nao encontrada."
+        )
 
     horarios = db.scalars(
         select(HorarioFuncionamento).where(
             HorarioFuncionamento.id_espaco == espaco_id,
             HorarioFuncionamento.dia_semana == data.weekday(),
-            HorarioFuncionamento.ativo == True,
+            HorarioFuncionamento.ativo,
         )
     ).all()
-    windows = [(h.hora_abertura, h.hora_fechamento) for h in horarios] or [(time(6, 0), time(23, 0))]
+    windows = [(h.hora_abertura, h.hora_fechamento) for h in horarios] or [
+        (time(6, 0), time(23, 0))
+    ]
     capacity = espaco.qtd_quadras or 1
     result = []
     for open_at, close_at in windows:
@@ -1157,9 +1244,14 @@ def update_my_pagamento(
 ) -> ReservaOut:
     reserva = db.get(Reserva, reserva_id)
     if not reserva or reserva.id_usuario != current_user.id_usuario:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reserva nao encontrada.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Reserva nao encontrada."
+        )
     if reserva.status_reserva == "cancelado":
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Reserva cancelada nao aceita pagamento.")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Reserva cancelada nao aceita pagamento.",
+        )
 
     pagamento = reserva.pagamento
     if not pagamento:
@@ -1179,7 +1271,9 @@ def update_my_pagamento(
     return reserva_to_out(reserva)
 
 
-@app.post("/me/avaliacoes", response_model=AvaliacaoOut, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/me/avaliacoes", response_model=AvaliacaoOut, status_code=status.HTTP_201_CREATED
+)
 def create_my_avaliacao(
     payload: AvaliacaoCreate,
     current_user: Usuario = Depends(get_current_user),
@@ -1187,7 +1281,9 @@ def create_my_avaliacao(
 ) -> AvaliacaoOut:
     reserva = db.get(Reserva, payload.id_reserva)
     if not reserva or reserva.id_usuario != current_user.id_usuario:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reserva nao encontrada.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Reserva nao encontrada."
+        )
     if reserva.status_reserva != "concluido":
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -1201,7 +1297,9 @@ def create_my_avaliacao(
         )
     )
     if existing:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Essa reserva ja foi avaliada.")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Essa reserva ja foi avaliada."
+        )
 
     avaliacao = Avaliacao(
         id_usuario=current_user.id_usuario,
@@ -1275,7 +1373,11 @@ def owner_horarios(
     return [horario_to_out(horario) for horario in horarios]
 
 
-@app.post("/owner/espacos/{espaco_id}/horarios", response_model=HorarioFuncionamentoOut, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/owner/espacos/{espaco_id}/horarios",
+    response_model=HorarioFuncionamentoOut,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_owner_horario(
     espaco_id: int,
     payload: HorarioFuncionamentoCreate,
@@ -1284,7 +1386,9 @@ def create_owner_horario(
 ) -> HorarioFuncionamentoOut:
     espaco = db.get(Espaco, espaco_id)
     if not espaco or espaco.id_proprietario != owner.id_proprietario:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Quadra nao encontrada.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quadra nao encontrada."
+        )
 
     horario = HorarioFuncionamento(
         id_espaco=espaco_id,
@@ -1317,7 +1421,11 @@ def owner_bloqueios(
     return [bloqueio_to_out(bloqueio) for bloqueio in bloqueios]
 
 
-@app.post("/owner/bloqueios", response_model=BloqueioHorarioOut, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/owner/bloqueios",
+    response_model=BloqueioHorarioOut,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_owner_bloqueio(
     payload: BloqueioHorarioCreate,
     owner: Proprietario = Depends(get_current_owner),
@@ -1325,7 +1433,9 @@ def create_owner_bloqueio(
 ) -> BloqueioHorarioOut:
     espaco = db.get(Espaco, payload.id_espaco)
     if not espaco or espaco.id_proprietario != owner.id_proprietario:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Quadra nao encontrada.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quadra nao encontrada."
+        )
     bloqueio = BloqueioHorario(
         id_espaco=payload.id_espaco,
         data_bloqueio=payload.data_bloqueio,
@@ -1348,7 +1458,9 @@ def owner_espacos(
     return [EspacoOut(**espaco.to_dict()) for espaco in espacos]
 
 
-@app.post("/owner/espacos", response_model=EspacoOut, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/owner/espacos", response_model=EspacoOut, status_code=status.HTTP_201_CREATED
+)
 def create_owner_espaco(
     payload: EspacoCreate,
     owner: Proprietario = Depends(get_current_owner),

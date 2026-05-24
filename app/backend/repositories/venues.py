@@ -24,4 +24,3 @@ def list_owner_venues(db: Session, owner_id: int) -> list[Espaco]:
 
 def get_venue(db: Session, venue_id: int) -> Espaco | None:
     return db.get(Espaco, venue_id)
-

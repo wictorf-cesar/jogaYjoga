@@ -1,2 +1,1 @@
 """Favorites domain."""
-

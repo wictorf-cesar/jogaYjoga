@@ -31,6 +31,7 @@ CSV_CANDIDATES = (
     ROOT_DIR / "app" / "data" / "Quadras.csv",
 )
 
+
 def find_csv_path() -> Path | None:
     return next((path for path in CSV_CANDIDATES if path.exists()), None)
 
@@ -83,7 +84,9 @@ def load_space_rows() -> list[dict[str, str]]:
     csv_path = find_csv_path()
     if not csv_path:
         expected = ", ".join(str(path) for path in CSV_CANDIDATES)
-        raise FileNotFoundError(f"Quadras.csv nao encontrado. Locais esperados: {expected}")
+        raise FileNotFoundError(
+            f"Quadras.csv nao encontrado. Locais esperados: {expected}"
+        )
 
     with csv_path.open(encoding="utf-8-sig", newline="") as file:
         return list(csv.DictReader(file))
@@ -176,7 +179,9 @@ def seed(reset: bool = True) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Popula o banco local com locais do CSV.")
+    parser = argparse.ArgumentParser(
+        description="Popula o banco local com locais do CSV."
+    )
     parser.add_argument(
         "--no-reset",
         action="store_true",

@@ -17,7 +17,11 @@ class ChatbotEngineTest(unittest.TestCase):
             "selectedVenue": None,
             "selectedTime": None,
             "venues": [
-                {"id": 1, "nome": "Sport Club do Recife", "esportes": ["Futebol Society"]},
+                {
+                    "id": 1,
+                    "nome": "Sport Club do Recife",
+                    "esportes": ["Futebol Society"],
+                },
                 {"id": 2, "nome": "AABB Recife", "esportes": ["Futebol Society"]},
             ],
             "timeSlots": [],
@@ -26,7 +30,9 @@ class ChatbotEngineTest(unittest.TestCase):
         result = handleChatMessage("horarios?", state)
 
         self.assertEqual(result["action"]["type"], ChatActionType.NONE.value)
-        self.assertEqual(result["state"]["step"], ChatStep.WAITING_VENUE_SELECTION.value)
+        self.assertEqual(
+            result["state"]["step"], ChatStep.WAITING_VENUE_SELECTION.value
+        )
         self.assertIsNone(result["state"]["selectedVenue"])
         self.assertIn("primeiro escolha", result["reply"])
 
@@ -89,4 +95,3 @@ class ChatbotEngineTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

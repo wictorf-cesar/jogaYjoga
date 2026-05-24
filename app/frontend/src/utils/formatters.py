@@ -4,7 +4,9 @@ from __future__ import annotations
 def format_currency(value: float | int | None) -> str:
     if value is None:
         return "Nao informado"
-    return f"R$ {float(value):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return (
+        f"R$ {float(value):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    )
 
 
 def normalize_text(value: str | None) -> str:
@@ -26,4 +28,3 @@ def normalize_text(value: str | None) -> str:
     for old, new in replacements.items():
         normalized = normalized.replace(old, new)
     return normalized
-

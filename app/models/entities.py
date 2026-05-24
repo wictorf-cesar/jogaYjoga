@@ -21,6 +21,7 @@ from app.core.config import ProjectConfig
 class Base(DeclarativeBase):
     pass
 
+
 # ── Tabela associativa N:N (espaco <-> esporte) ──
 espaco_esportes = Table(
     "espaco_esportes",
@@ -28,7 +29,6 @@ espaco_esportes = Table(
     Column("id_espaco", Integer, ForeignKey("espacos.id_espaco"), primary_key=True),
     Column("id_esporte", Integer, ForeignKey("esportes.id_esporte"), primary_key=True),
 )
-
 
 
 class Endereco(Base):
@@ -64,7 +64,9 @@ class Usuario(Base):
     senha_hash = Column(String(255), nullable=False)
     telefone = Column(String(20))
     data_nascimento = Column(Date)
-    id_endereco_residencia = Column(Integer, ForeignKey(ProjectConfig.TABLE_ENDERECOS + ".id_endereco"))
+    id_endereco_residencia = Column(
+        Integer, ForeignKey(ProjectConfig.TABLE_ENDERECOS + ".id_endereco")
+    )
     is_dono_quadra = Column(Boolean, default=False, nullable=False)
     data_cadastro = Column(DateTime, default=datetime.utcnow)
 
@@ -94,7 +96,11 @@ class Proprietario(Base):
     __tablename__ = ProjectConfig.TABLE_PROPRIETARIOS
 
     id_proprietario = Column(Integer, primary_key=True, autoincrement=True)
-    id_usuario = Column(Integer, ForeignKey(ProjectConfig.TABLE_USUARIOS + ".id_usuario"), nullable=False)
+    id_usuario = Column(
+        Integer,
+        ForeignKey(ProjectConfig.TABLE_USUARIOS + ".id_usuario"),
+        nullable=False,
+    )
     cnpj = Column(String(18), unique=True)
     razao_social = Column(String(150))
     chave_pix = Column(String(100))
@@ -134,8 +140,12 @@ class Espaco(Base):
 
     id_espaco = Column(Integer, primary_key=True, autoincrement=True)
     nome_espaco = Column(String(150), nullable=False)
-    id_endereco = Column(Integer, ForeignKey(ProjectConfig.TABLE_ENDERECOS + ".id_endereco"))
-    id_proprietario = Column(Integer, ForeignKey(ProjectConfig.TABLE_PROPRIETARIOS + ".id_proprietario"))
+    id_endereco = Column(
+        Integer, ForeignKey(ProjectConfig.TABLE_ENDERECOS + ".id_endereco")
+    )
+    id_proprietario = Column(
+        Integer, ForeignKey(ProjectConfig.TABLE_PROPRIETARIOS + ".id_proprietario")
+    )
     latitude = Column(Numeric(10, 8))
     longitude = Column(Numeric(11, 8))
     tamanho_quadra = Column(String(50))
@@ -176,8 +186,14 @@ class Reserva(Base):
     __tablename__ = ProjectConfig.TABLE_RESERVAS
 
     id_reserva = Column(Integer, primary_key=True, autoincrement=True)
-    id_usuario = Column(Integer, ForeignKey(ProjectConfig.TABLE_USUARIOS + ".id_usuario"), nullable=False)
-    id_espaco = Column(Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False)
+    id_usuario = Column(
+        Integer,
+        ForeignKey(ProjectConfig.TABLE_USUARIOS + ".id_usuario"),
+        nullable=False,
+    )
+    id_espaco = Column(
+        Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False
+    )
     data_reserva = Column(Date, nullable=False)
     hora_inicio = Column(Time, nullable=False)
     hora_fim = Column(Time, nullable=False)
@@ -210,9 +226,17 @@ class Avaliacao(Base):
     __tablename__ = ProjectConfig.TABLE_AVALIACOES
 
     id_avaliacao = Column(Integer, primary_key=True, autoincrement=True)
-    id_usuario = Column(Integer, ForeignKey(ProjectConfig.TABLE_USUARIOS + ".id_usuario"), nullable=False)
-    id_espaco = Column(Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False)
-    id_reserva = Column(Integer, ForeignKey(ProjectConfig.TABLE_RESERVAS + ".id_reserva"))
+    id_usuario = Column(
+        Integer,
+        ForeignKey(ProjectConfig.TABLE_USUARIOS + ".id_usuario"),
+        nullable=False,
+    )
+    id_espaco = Column(
+        Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False
+    )
+    id_reserva = Column(
+        Integer, ForeignKey(ProjectConfig.TABLE_RESERVAS + ".id_reserva")
+    )
     nota = Column(Integer, nullable=False)  # 1-5
     comentario = Column(String(500))
     criado_em = Column(DateTime, default=datetime.utcnow)
@@ -236,7 +260,9 @@ class HorarioFuncionamento(Base):
     __tablename__ = ProjectConfig.TABLE_HORARIOS_FUNCIONAMENTO
 
     id_horario = Column(Integer, primary_key=True, autoincrement=True)
-    id_espaco = Column(Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False)
+    id_espaco = Column(
+        Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False
+    )
     dia_semana = Column(Integer, nullable=False)
     hora_abertura = Column(Time, nullable=False)
     hora_fechamento = Column(Time, nullable=False)
@@ -249,7 +275,9 @@ class BloqueioHorario(Base):
     __tablename__ = ProjectConfig.TABLE_BLOQUEIOS_HORARIO
 
     id_bloqueio = Column(Integer, primary_key=True, autoincrement=True)
-    id_espaco = Column(Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False)
+    id_espaco = Column(
+        Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False
+    )
     data_bloqueio = Column(Date, nullable=False)
     hora_inicio = Column(Time, nullable=False)
     hora_fim = Column(Time, nullable=False)
@@ -263,7 +291,11 @@ class Pagamento(Base):
     __tablename__ = ProjectConfig.TABLE_PAGAMENTOS
 
     id_pagamento = Column(Integer, primary_key=True, autoincrement=True)
-    id_reserva = Column(Integer, ForeignKey(ProjectConfig.TABLE_RESERVAS + ".id_reserva"), nullable=False)
+    id_reserva = Column(
+        Integer,
+        ForeignKey(ProjectConfig.TABLE_RESERVAS + ".id_reserva"),
+        nullable=False,
+    )
     metodo = Column(String(30))
     status_pagamento = Column(
         Enum("pendente", "pago", "estornado", "falhou", name="status_pagamento"),
@@ -282,7 +314,9 @@ class FotoEspaco(Base):
     __tablename__ = ProjectConfig.TABLE_FOTOS_ESPACO
 
     id_foto = Column(Integer, primary_key=True, autoincrement=True)
-    id_espaco = Column(Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False)
+    id_espaco = Column(
+        Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False
+    )
     url = Column(String(255), nullable=False)
     legenda = Column(String(150))
     principal = Column(Boolean, default=False, nullable=False)
@@ -294,8 +328,14 @@ class Favorito(Base):
     __tablename__ = ProjectConfig.TABLE_FAVORITOS
 
     id_favorito = Column(Integer, primary_key=True, autoincrement=True)
-    id_usuario = Column(Integer, ForeignKey(ProjectConfig.TABLE_USUARIOS + ".id_usuario"), nullable=False)
-    id_espaco = Column(Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False)
+    id_usuario = Column(
+        Integer,
+        ForeignKey(ProjectConfig.TABLE_USUARIOS + ".id_usuario"),
+        nullable=False,
+    )
+    id_espaco = Column(
+        Integer, ForeignKey(ProjectConfig.TABLE_ESPACOS + ".id_espaco"), nullable=False
+    )
     criado_em = Column(DateTime, default=datetime.utcnow)
 
     usuario = relationship("Usuario")

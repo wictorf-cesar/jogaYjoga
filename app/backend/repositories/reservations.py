@@ -30,5 +30,6 @@ def list_owner_reservations(
     query = select(Reserva).where(Reserva.id_espaco.in_(venue_ids))
     if reservation_date:
         query = query.where(Reserva.data_reserva == reservation_date)
-    return db.scalars(query.order_by(Reserva.data_reserva.desc(), Reserva.hora_inicio.desc())).all()
-
+    return db.scalars(
+        query.order_by(Reserva.data_reserva.desc(), Reserva.hora_inicio.desc())
+    ).all()

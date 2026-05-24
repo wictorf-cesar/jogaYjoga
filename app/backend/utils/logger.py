@@ -46,7 +46,9 @@ def log_event(tag: str, message: str, **data: Any) -> None:
     logger.info(f"[{tag}] {message}{payload}")
 
 
-def log_error(tag: str, message: str, exc: Exception | None = None, **data: Any) -> None:
+def log_error(
+    tag: str, message: str, exc: Exception | None = None, **data: Any
+) -> None:
     if exc:
         data["error_type"] = type(exc).__name__
         data["error"] = str(exc)
@@ -61,4 +63,3 @@ def mask_secret(value: str | None) -> str | None:
     if len(value) <= 8:
         return "*" * len(value)
     return f"{value[:4]}...{value[-4:]}"
-

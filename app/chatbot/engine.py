@@ -123,7 +123,9 @@ def normalize_sport(value: str | None) -> str | None:
     text = normalize_text(value).replace("_", " ")
     if not text:
         return None
-    for synonym, canonical in sorted(SPORT_SYNONYMS.items(), key=lambda item: len(item[0]), reverse=True):
+    for synonym, canonical in sorted(
+        SPORT_SYNONYMS.items(), key=lambda item: len(item[0]), reverse=True
+    ):
         normalized_synonym = normalize_text(synonym)
         if text == normalized_synonym or normalized_synonym in text:
             return canonical
@@ -218,7 +220,9 @@ def detect_sport(message: str, parsed: dict[str, Any] | None = None) -> str | No
         if sport:
             return sport
     text = normalize_text(message)
-    for synonym, canonical in sorted(SPORT_SYNONYMS.items(), key=lambda item: len(item[0]), reverse=True):
+    for synonym, canonical in sorted(
+        SPORT_SYNONYMS.items(), key=lambda item: len(item[0]), reverse=True
+    ):
         if normalize_text(synonym) in text:
             return canonical
     return None
@@ -232,7 +236,9 @@ def detect_city(
     parsed_city = parsed.get("city") if parsed else None
     if parsed_city:
         if known_cities:
-            matched = match_name(parsed_city, [{"nome": city} for city in known_cities], key="nome")
+            matched = match_name(
+                parsed_city, [{"nome": city} for city in known_cities], key="nome"
+            )
             if matched:
                 return matched["nome"]
         return str(parsed_city).strip().title()
@@ -260,7 +266,9 @@ def detect_time(message: str, parsed: dict[str, Any] | None = None) -> str | Non
     return parse_time_text(message)
 
 
-def detect_intent(message: str, state: dict[str, Any], parsed: dict[str, Any] | None = None) -> ChatIntent:
+def detect_intent(
+    message: str, state: dict[str, Any], parsed: dict[str, Any] | None = None
+) -> ChatIntent:
     text = normalize_text(message)
     step = state.get("step", ChatStep.IDLE.value)
     parsed_intent = (parsed or {}).get("intent")
@@ -271,9 +279,13 @@ def detect_intent(message: str, state: dict[str, Any], parsed: dict[str, Any] | 
         return ChatIntent.CONFIRM_RESERVATION
     if not is_in_scope(message, parsed):
         return ChatIntent.OUT_OF_SCOPE
-    if step == ChatStep.WAITING_TIME_SELECTION.value and is_explicit_time_selection(message, state, parsed):
+    if step == ChatStep.WAITING_TIME_SELECTION.value and is_explicit_time_selection(
+        message, state, parsed
+    ):
         return ChatIntent.SELECT_TIME
-    if step == ChatStep.WAITING_VENUE_SELECTION.value and is_explicit_venue_selection(message, state, parsed):
+    if step == ChatStep.WAITING_VENUE_SELECTION.value and is_explicit_venue_selection(
+        message, state, parsed
+    ):
         return ChatIntent.SELECT_VENUE
     if any(term in text for term in TIME_QUESTION_TERMS):
         return ChatIntent.ASK_AVAILABLE_TIMES
@@ -290,7 +302,9 @@ def detect_intent(message: str, state: dict[str, Any], parsed: dict[str, Any] | 
     if mapped:
         return mapped
 
-    if any(term in text for term in ["reservar", "reserva", "marcar", "pelada", "jogar"]):
+    if any(
+        term in text for term in ["reservar", "reserva", "marcar", "pelada", "jogar"]
+    ):
         return ChatIntent.CREATE_RESERVATION
     if any(term in text for term in ["quadra", "quadras", "onde"]):
         return ChatIntent.ASK_AVAILABLE_VENUES
@@ -311,7 +325,10 @@ def is_explicit_venue_selection(
         return True
     if match_name(message, venues, key="nome"):
         return True
-    if text in {"essa", "esse", "quero essa", "quero esse", "esta", "este"} and len(venues) == 1:
+    if (
+        text in {"essa", "esse", "quero essa", "quero esse", "esta", "este"}
+        and len(venues) == 1
+    ):
         return True
     return False
 
@@ -326,12 +343,18 @@ def is_explicit_time_selection(
     if number and 1 <= int(number) <= len(slots):
         return True
     selected_time = detect_time(message, parsed)
-    return selected_time is not None and any(slot.get("hora_inicio", "")[:5] == selected_time for slot in slots)
+    return selected_time is not None and any(
+        slot.get("hora_inicio", "")[:5] == selected_time for slot in slots
+    )
 
 
-def match_name(value: str, items: list[dict[str, Any]], key: str = "nome") -> dict[str, Any] | None:
+def match_name(
+    value: str, items: list[dict[str, Any]], key: str = "nome"
+) -> dict[str, Any] | None:
     text = normalize_text(value)
-    for item in sorted(items, key=lambda candidate: len(str(candidate.get(key, ""))), reverse=True):
+    for item in sorted(
+        items, key=lambda candidate: len(str(candidate.get(key, ""))), reverse=True
+    ):
         name = str(item.get(key, ""))
         normalized_name = normalize_text(name)
         if normalized_name and (text == normalized_name or normalized_name in text):
@@ -351,7 +374,10 @@ def selected_venue_from_message(
     matched = match_name(message, venues, key="nome")
     if matched:
         return matched
-    if normalize_text(message) in {"essa", "esse", "quero essa", "quero esse"} and len(venues) == 1:
+    if (
+        normalize_text(message) in {"essa", "esse", "quero essa", "quero esse"}
+        and len(venues) == 1
+    ):
         return venues[0]
     return None
 
@@ -373,15 +399,25 @@ def selected_time_from_message(
     return None
 
 
-def detect_context_change(new_input: dict[str, Any], state: dict[str, Any]) -> dict[str, bool]:
+def detect_context_change(
+    new_input: dict[str, Any], state: dict[str, Any]
+) -> dict[str, bool]:
     return {
-        "sport": bool(new_input.get("sport") and new_input.get("sport") != state.get("sport")),
-        "city": bool(new_input.get("city") and new_input.get("city") != state.get("city")),
-        "date": bool(new_input.get("date") and new_input.get("date") != state.get("date")),
+        "sport": bool(
+            new_input.get("sport") and new_input.get("sport") != state.get("sport")
+        ),
+        "city": bool(
+            new_input.get("city") and new_input.get("city") != state.get("city")
+        ),
+        "date": bool(
+            new_input.get("date") and new_input.get("date") != state.get("date")
+        ),
     }
 
 
-def merge_context_safely(state: dict[str, Any], new_input: dict[str, Any]) -> tuple[dict[str, Any], dict[str, bool]]:
+def merge_context_safely(
+    state: dict[str, Any], new_input: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, bool]]:
     merged = deepcopy({**default_chat_state(), **(state or {})})
     changes = detect_context_change(new_input, merged)
 
@@ -401,12 +437,20 @@ def merge_context_safely(state: dict[str, Any], new_input: dict[str, Any]) -> tu
     return merged, changes
 
 
-def action(action_type: ChatActionType, params: dict[str, Any] | None = None) -> dict[str, Any]:
+def action(
+    action_type: ChatActionType, params: dict[str, Any] | None = None
+) -> dict[str, Any]:
     return {"type": action_type.value, "params": params or {}}
 
 
-def response(reply: str, state: dict[str, Any], action_value: dict[str, Any] | None = None) -> dict[str, Any]:
-    return {"reply": reply, "state": state, "action": action_value or action(ChatActionType.NONE)}
+def response(
+    reply: str, state: dict[str, Any], action_value: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    return {
+        "reply": reply,
+        "state": state,
+        "action": action_value or action(ChatActionType.NONE),
+    }
 
 
 def decide_next_action(state: dict[str, Any]) -> dict[str, Any]:
@@ -415,7 +459,13 @@ def decide_next_action(state: dict[str, Any]) -> dict[str, Any]:
             ChatActionType.FETCH_VENUES,
             {"sport": state["sport"], "city": state["city"]},
         )
-    if state.get("sport") and state.get("city") and state.get("selectedVenue") and state.get("date") and not state.get("selectedTime"):
+    if (
+        state.get("sport")
+        and state.get("city")
+        and state.get("selectedVenue")
+        and state.get("date")
+        and not state.get("selectedTime")
+    ):
         return action(
             ChatActionType.FETCH_TIMES,
             {
@@ -425,7 +475,13 @@ def decide_next_action(state: dict[str, Any]) -> dict[str, Any]:
                 "date": state["date"],
             },
         )
-    if state.get("sport") and state.get("city") and state.get("selectedVenue") and state.get("date") and state.get("selectedTime"):
+    if (
+        state.get("sport")
+        and state.get("city")
+        and state.get("selectedVenue")
+        and state.get("date")
+        and state.get("selectedTime")
+    ):
         return action(
             ChatActionType.CREATE_RESERVATION,
             {
@@ -483,7 +539,10 @@ def handleChatMessage(
             return response(
                 f"Vou buscar quadras de {sport_label(state['sport'])} em {state['city']} primeiro.",
                 state,
-                action(ChatActionType.FETCH_VENUES, {"sport": state["sport"], "city": state["city"]}),
+                action(
+                    ChatActionType.FETCH_VENUES,
+                    {"sport": state["sport"], "city": state["city"]},
+                ),
             )
         return ask_for_missing_context(state)
 
@@ -510,7 +569,9 @@ def handleChatMessage(
     if intent == ChatIntent.SELECT_TIME:
         selected = selected_time_from_message(userMessage, state, parsed)
         if not selected:
-            return response("Escolha um horario pelo numero da lista ou pela hora.", state)
+            return response(
+                "Escolha um horario pelo numero da lista ou pela hora.", state
+            )
         state["selectedTime"] = selected
         state["step"] = ChatStep.WAITING_CONFIRMATION.value
         venue = state["selectedVenue"]
@@ -521,9 +582,17 @@ def handleChatMessage(
         )
 
     if intent == ChatIntent.CONFIRM_RESERVATION:
-        required = [state.get("sport"), state.get("city"), state.get("selectedVenue"), state.get("date"), state.get("selectedTime")]
+        required = [
+            state.get("sport"),
+            state.get("city"),
+            state.get("selectedVenue"),
+            state.get("date"),
+            state.get("selectedTime"),
+        ]
         if not all(required):
-            return response("Ainda falta escolher quadra e horario antes de confirmar.", state)
+            return response(
+                "Ainda falta escolher quadra e horario antes de confirmar.", state
+            )
         return response("Vou confirmar sua reserva.", state, decide_next_action(state))
 
     if incoming.get("time") and not state.get("selectedTime"):
@@ -536,17 +605,27 @@ def handleChatMessage(
             f"{' para ' + state['date'] if state.get('date') else ''} em {state['city']}. "
             f"Vou buscar quadras de {sport_label(state['sport'])} disponiveis.",
             state,
-            action(ChatActionType.FETCH_VENUES, {"sport": state["sport"], "city": state["city"]}),
+            action(
+                ChatActionType.FETCH_VENUES,
+                {"sport": state["sport"], "city": state["city"]},
+            ),
         )
 
-    if intent in {ChatIntent.CREATE_RESERVATION, ChatIntent.ASK_AVAILABLE_VENUES, ChatIntent.ASK_AVAILABLE_TIMES}:
+    if intent in {
+        ChatIntent.CREATE_RESERVATION,
+        ChatIntent.ASK_AVAILABLE_VENUES,
+        ChatIntent.ASK_AVAILABLE_TIMES,
+    }:
         if not state.get("sport") or not state.get("city"):
             return ask_for_missing_context(state)
         state["step"] = ChatStep.WAITING_VENUE_SELECTION.value
         return response(
             f"Vou buscar quadras de {sport_label(state['sport'])} em {state['city']}.",
             state,
-            action(ChatActionType.FETCH_VENUES, {"sport": state["sport"], "city": state["city"]}),
+            action(
+                ChatActionType.FETCH_VENUES,
+                {"sport": state["sport"], "city": state["city"]},
+            ),
         )
 
     return ask_for_missing_context(state)
@@ -564,7 +643,10 @@ def ask_for_missing_context(state: dict[str, Any]) -> dict[str, Any]:
         return response(
             f"Vou buscar quadras de {sport_label(state['sport'])} em {state['city']}.",
             state,
-            action(ChatActionType.FETCH_VENUES, {"sport": state["sport"], "city": state["city"]}),
+            action(
+                ChatActionType.FETCH_VENUES,
+                {"sport": state["sport"], "city": state["city"]},
+            ),
         )
     if not state.get("date"):
         state["step"] = ChatStep.WAITING_DATE.value
@@ -589,7 +671,9 @@ def venue_supports_sport(venue: dict[str, Any], sport: str) -> bool:
     return False
 
 
-def filter_venues_for_state(venues: list[dict[str, Any]], state: dict[str, Any]) -> list[dict[str, Any]]:
+def filter_venues_for_state(
+    venues: list[dict[str, Any]], state: dict[str, Any]
+) -> list[dict[str, Any]]:
     sport = state.get("sport")
     city = state.get("city")
     filtered = []

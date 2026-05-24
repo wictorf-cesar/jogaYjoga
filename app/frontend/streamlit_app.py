@@ -53,7 +53,9 @@ def chat_debug_log(tag: str, message: str, **data: object) -> None:
     chat_logger.info(f"[{tag}] {message}{payload}")
 
 
-def chat_debug_error(tag: str, message: str, exc: Exception | None = None, **data: object) -> None:
+def chat_debug_error(
+    tag: str, message: str, exc: Exception | None = None, **data: object
+) -> None:
     if exc:
         data["error_type"] = type(exc).__name__
         data["error"] = str(exc)
@@ -63,7 +65,14 @@ def chat_debug_error(tag: str, message: str, exc: Exception | None = None, **dat
 
 
 def debugChatFlow(message: str, state: dict, action: dict | str | None = None) -> None:
-    chat_debug_log("DEBUG CHAT FLOW", "Snapshot do fluxo", message=message, state=state, action=action or "NONE")
+    chat_debug_log(
+        "DEBUG CHAT FLOW",
+        "Snapshot do fluxo",
+        message=message,
+        state=state,
+        action=action or "NONE",
+    )
+
 
 st.set_page_config(page_title="Joga & Joga", page_icon=str(LOGO_PATH), layout="wide")
 
@@ -345,7 +354,9 @@ def delete_api(path: str, token: str | None = None) -> tuple[bool, str | None]:
     return True, None
 
 
-def get_api(path: str, token: str | None = None) -> tuple[dict | list | None, str | None]:
+def get_api(
+    path: str, token: str | None = None
+) -> tuple[dict | list | None, str | None]:
     headers = {"Authorization": f"Bearer {token}"} if token else None
     try:
         response = requests.get(f"{API_URL}{path}", headers=headers, timeout=10)
@@ -463,7 +474,9 @@ def get_espaco_detail(token: str, espaco_id: int) -> tuple[dict, str | None]:
     return data or {}, None
 
 
-def get_availability(espaco_id: int, data_reserva: date) -> tuple[list[dict], str | None]:
+def get_availability(
+    espaco_id: int, data_reserva: date
+) -> tuple[list[dict], str | None]:
     data, error = get_api(
         f"/espacos/{espaco_id}/disponibilidade?data={data_reserva.isoformat()}"
     )
@@ -677,16 +690,22 @@ def render_espacos_filters(espacos: list[dict], key_prefix: str) -> list[dict]:
     coberturas = sorted(
         {espaco.get("cobertura") for espaco in espacos if espaco.get("cobertura")}
     )
-    prices = [espaco.get("preco_hora") for espaco in espacos if espaco.get("preco_hora")]
+    prices = [
+        espaco.get("preco_hora") for espaco in espacos if espaco.get("preco_hora")
+    ]
 
     with st.expander("Filtros", expanded=True):
         col_1, col_2, col_3, col_4 = st.columns([0.34, 0.22, 0.22, 0.22])
         with col_1:
             search = st.text_input("Buscar", key=f"{key_prefix}_search")
         with col_2:
-            cidade = st.selectbox("Cidade", ["Todas", *cidades], key=f"{key_prefix}_cidade")
+            cidade = st.selectbox(
+                "Cidade", ["Todas", *cidades], key=f"{key_prefix}_cidade"
+            )
         with col_3:
-            esporte = st.selectbox("Esporte", ["Todos", *esportes], key=f"{key_prefix}_esporte")
+            esporte = st.selectbox(
+                "Esporte", ["Todos", *esportes], key=f"{key_prefix}_esporte"
+            )
         with col_4:
             cobertura = st.selectbox(
                 "Cobertura",
@@ -806,7 +825,9 @@ def login_page() -> None:
                     logradouro = st.text_input("Rua / avenida")
                 with address_col_2:
                     cep = st.text_input("CEP")
-                address_col_3, address_col_4, address_col_5 = st.columns([0.4, 0.4, 0.2])
+                address_col_3, address_col_4, address_col_5 = st.columns(
+                    [0.4, 0.4, 0.2]
+                )
                 with address_col_3:
                     bairro = st.text_input("Bairro")
                 with address_col_4:
@@ -814,7 +835,9 @@ def login_page() -> None:
                 with address_col_5:
                     estado = st.text_input("UF", value="PE", max_chars=2)
                 senha = st.text_input("Senha", type="password", key="register_password")
-                submitted = st.form_submit_button("Criar conta", use_container_width=True)
+                submitted = st.form_submit_button(
+                    "Criar conta", use_container_width=True
+                )
 
             if submitted:
                 payload = {
@@ -870,7 +893,11 @@ def render_user_navigation() -> str:
     current_page = st.session_state.get("user_page", "Mapa")
     with st.sidebar:
         st.caption("Navegacao")
-        if st.button("Mapa", use_container_width=True, type="primary" if current_page == "Mapa" else "secondary"):
+        if st.button(
+            "Mapa",
+            use_container_width=True,
+            type="primary" if current_page == "Mapa" else "secondary",
+        ):
             st.session_state["user_page"] = "Mapa"
             st.rerun()
         if st.button(
@@ -928,7 +955,15 @@ def reset_chat_flow() -> None:
 
 
 def clear_chat_flow_selection(flow: dict) -> None:
-    for key in ["candidates", "selected_space", "date", "date_hint", "time_hint", "slots", "slot"]:
+    for key in [
+        "candidates",
+        "selected_space",
+        "date",
+        "date_hint",
+        "time_hint",
+        "slots",
+        "slot",
+    ]:
         flow.pop(key, None)
 
 
@@ -981,7 +1016,11 @@ def is_new_chat_search(message: str, parsed: dict) -> bool:
     text = normalize_text(message)
     if chat_option_selection(message) is not None:
         return False
-    if parsed.get("intent") in {"criar_reserva", "buscar_quadras", "ver_disponibilidade"}:
+    if parsed.get("intent") in {
+        "criar_reserva",
+        "buscar_quadras",
+        "ver_disponibilidade",
+    }:
         return True
     search_terms = [
         "marcar",
@@ -1097,8 +1136,12 @@ def detect_chat_sport(message: str, espacos: list[dict]) -> str | None:
     return None
 
 
-def resolve_chat_sport(value: str | None, message: str, espacos: list[dict]) -> str | None:
-    sports = sorted({sport for espaco in espacos for sport in (espaco.get("esportes") or [])})
+def resolve_chat_sport(
+    value: str | None, message: str, espacos: list[dict]
+) -> str | None:
+    sports = sorted(
+        {sport for espaco in espacos for sport in (espaco.get("esportes") or [])}
+    )
     return match_chat_option(value, sports) or detect_chat_sport(message, espacos)
 
 
@@ -1119,7 +1162,9 @@ def detect_chat_city(message: str, espacos: list[dict]) -> str | None:
     return None
 
 
-def resolve_chat_city(value: str | None, message: str, espacos: list[dict]) -> str | None:
+def resolve_chat_city(
+    value: str | None, message: str, espacos: list[dict]
+) -> str | None:
     cities = sorted(
         {
             (espaco.get("endereco") or {}).get("municipio")
@@ -1170,7 +1215,10 @@ def classify_chat_intent(message: str) -> str:
         return "pagamento"
     if any(term in text for term in ["favorito", "favoritar"]):
         return "favoritos"
-    if any(term in text for term in ["reservar", "reserva", "marcar", "pelada", "jogar", "horario"]):
+    if any(
+        term in text
+        for term in ["reservar", "reserva", "marcar", "pelada", "jogar", "horario"]
+    ):
         return "criar_reserva"
     if any(term in text for term in ["quadra", "buscar", "encontrar", "esporte"]):
         return "buscar_quadras"
@@ -1181,9 +1229,7 @@ def build_chat_candidates(flow: dict, espacos: list[dict]) -> list[dict]:
     candidates = espacos
     if flow.get("sport"):
         candidates = [
-            espaco
-            for espaco in candidates
-            if chat_sport_matches(flow["sport"], espaco)
+            espaco for espaco in candidates if chat_sport_matches(flow["sport"], espaco)
         ]
     if flow.get("city"):
         candidates = [
@@ -1244,7 +1290,9 @@ def load_chat_slots(flow: dict, reservation_date: date) -> str | None:
     return None
 
 
-def find_chat_slot_by_time(slots: list[dict], requested_time: time | None) -> dict | None:
+def find_chat_slot_by_time(
+    slots: list[dict], requested_time: time | None
+) -> dict | None:
     if not requested_time:
         return None
     requested = requested_time.strftime("%H:%M")
@@ -1291,7 +1339,9 @@ def handle_chat_cancel_flow(token: str, message: str) -> str:
     if error:
         reset_chat_flow()
         return error
-    cancelable = [reserva for reserva in reservas if reserva.get("status") != "cancelado"]
+    cancelable = [
+        reserva for reserva in reservas if reserva.get("status") != "cancelado"
+    ]
     if not cancelable:
         reset_chat_flow()
         return "Voce nao tem reservas ativas para cancelar."
@@ -1304,7 +1354,9 @@ def handle_chat_cancel_flow(token: str, message: str) -> str:
                 (reserva for reserva in cancelable if reserva["id"] == selected_number),
                 None,
             )
-            if not selected and 1 <= selected_number <= len(flow.get("cancel_options", [])):
+            if not selected and 1 <= selected_number <= len(
+                flow.get("cancel_options", [])
+            ):
                 selected = flow["cancel_options"][selected_number - 1]
         if not selected:
             return "Nao encontrei essa reserva. Digite o numero da lista ou o ID da reserva."
@@ -1317,7 +1369,12 @@ def handle_chat_cancel_flow(token: str, message: str) -> str:
         )
 
     if flow.get("step") == "cancel_confirm":
-        if not parsed.get("confirmation") and text not in {"confirmar", "sim", "ok", "pode"}:
+        if not parsed.get("confirmation") and text not in {
+            "confirmar",
+            "sim",
+            "ok",
+            "pode",
+        }:
             reset_chat_flow()
             return "Reserva mantida. Posso ajudar com outra coisa."
         selected = flow.get("cancel_reservation")
@@ -1329,7 +1386,9 @@ def handle_chat_cancel_flow(token: str, message: str) -> str:
 
     selected_id = parsed.get("reservation_id") or chat_first_number(message)
     if selected_id:
-        selected = next((reserva for reserva in cancelable if reserva["id"] == selected_id), None)
+        selected = next(
+            (reserva for reserva in cancelable if reserva["id"] == selected_id), None
+        )
         if selected:
             flow.update(
                 {
@@ -1366,7 +1425,9 @@ def handle_chat_reservation_flow(token: str, message: str, espacos: list[dict]) 
     if flow.get("step") == "ask_sport":
         sport = resolve_chat_sport(parsed.get("sport"), message, espacos)
         if not sport:
-            return "Qual esporte voce quer jogar? Exemplos: Beach Tennis, Futebol, Tenis."
+            return (
+                "Qual esporte voce quer jogar? Exemplos: Beach Tennis, Futebol, Tenis."
+            )
         flow["sport"] = sport
         flow["step"] = "ask_city"
         return "Em qual cidade voce quer jogar?"
@@ -1397,7 +1458,10 @@ def handle_chat_reservation_flow(token: str, message: str, espacos: list[dict]) 
             reset_chat_flow()
             return handle_chat_reservation_flow(token, message, espacos)
         try:
-            selected_index = int(chat_option_selection(message) or parsed.get("space_number") or 0) - 1
+            selected_index = (
+                int(chat_option_selection(message) or parsed.get("space_number") or 0)
+                - 1
+            )
             selected = flow["candidates"][selected_index]
         except (ValueError, IndexError, KeyError):
             return "Digite o numero de uma das quadras listadas."
@@ -1440,14 +1504,22 @@ def handle_chat_reservation_flow(token: str, message: str, espacos: list[dict]) 
             reset_chat_flow()
             return handle_chat_reservation_flow(token, message, espacos)
         try:
-            selected_index = int(chat_option_selection(message) or parsed.get("slot_number") or 0) - 1
+            selected_index = (
+                int(chat_option_selection(message) or parsed.get("slot_number") or 0)
+                - 1
+            )
             selected_slot = flow["slots"][selected_index]
         except (ValueError, IndexError, KeyError):
             return "Digite o numero de um dos horarios listados."
         return confirm_chat_slot(flow, selected_slot)
 
     if flow.get("step") == "confirm":
-        if not parsed.get("confirmation") and text not in {"confirmar", "sim", "ok", "pode"}:
+        if not parsed.get("confirmation") and text not in {
+            "confirmar",
+            "sim",
+            "ok",
+            "pode",
+        }:
             reset_chat_flow()
             return "Reserva cancelada. Posso ajudar com outra busca."
         payload = {
@@ -1561,8 +1633,12 @@ def render_chatbot_page(token: str) -> None:
     init_chat_state()
 
     with st.container(border=True):
-        st.caption("Escopo: reservas, quadras, horarios, favoritos e pagamentos do app.")
-        provider = (st.session_state.get("last_ai_parse") or {}).get("provider", "aguardando mensagem")
+        st.caption(
+            "Escopo: reservas, quadras, horarios, favoritos e pagamentos do app."
+        )
+        provider = (st.session_state.get("last_ai_parse") or {}).get(
+            "provider", "aguardando mensagem"
+        )
         st.caption(f"Parser ativo: {provider}")
         for message in st.session_state["chat_messages"]:
             with st.chat_message(message["role"]):
@@ -1731,7 +1807,9 @@ def render_my_reservas(token: str) -> None:
             value=selected_payment.get("comprovante_url") or "",
         )
         if st.button("Salvar comprovante", use_container_width=True):
-            data, error = update_my_pagamento(token, selected_payment["id"], comprovante_url or None)
+            data, error = update_my_pagamento(
+                token, selected_payment["id"], comprovante_url or None
+            )
             if error:
                 st.toast(error)
                 st.error(error)
@@ -1742,13 +1820,17 @@ def render_my_reservas(token: str) -> None:
             }
             st.rerun()
 
-    concluded = [reserva for reserva in reservas if reserva.get("status") == "concluido"]
+    concluded = [
+        reserva for reserva in reservas if reserva.get("status") == "concluido"
+    ]
     if concluded:
         st.subheader("Avaliar quadra")
         selected_review = st.selectbox(
             "Reserva concluida",
             options=concluded,
-            format_func=lambda reserva: f"#{reserva['id']} - {reserva['espaco']} - {reserva['data']}",
+            format_func=lambda reserva: (
+                f"#{reserva['id']} - {reserva['espaco']} - {reserva['data']}"
+            ),
         )
         nota = st.slider("Nota", 1, 5, 5)
         comentario = st.text_area("Comentario", max_chars=500)
@@ -1771,7 +1853,9 @@ def render_my_reservas(token: str) -> None:
             }
             st.rerun()
 
-    cancelable = [reserva for reserva in reservas if reserva.get("status") != "cancelado"]
+    cancelable = [
+        reserva for reserva in reservas if reserva.get("status") != "cancelado"
+    ]
     if not cancelable:
         return
 
@@ -1858,7 +1942,9 @@ def usuario_home_page(user: dict) -> None:
             if (espaco.get("endereco") or {}).get("municipio")
         }
     )
-    sports_count = len({sport for espaco in espacos for sport in (espaco.get("esportes") or [])})
+    sports_count = len(
+        {sport for espaco in espacos for sport in (espaco.get("esportes") or [])}
+    )
     metric_1, metric_2, metric_3 = st.columns(3)
     metric_1.metric("Quadras", len(espacos))
     metric_2.metric("Cidades", cities_count)
@@ -1881,7 +1967,9 @@ def render_owner_metrics(dashboard: dict) -> None:
     with col_3:
         st.metric("Reservas no mes", dashboard.get("reservas_mes", 0))
     with col_4:
-        st.metric("Faturamento no mes", format_currency(dashboard.get("faturamento_mes")))
+        st.metric(
+            "Faturamento no mes", format_currency(dashboard.get("faturamento_mes"))
+        )
     st.caption(
         f"Ticket medio no mes: {format_currency(dashboard.get('ticket_medio_mes'))}"
     )
@@ -1927,7 +2015,8 @@ def render_owner_reservas(token: str) -> None:
     rows = [
         {
             "ID": reserva.get("id"),
-            "Usuario": reserva.get("usuario") or f"Usuario #{reserva.get('id_usuario')}",
+            "Usuario": reserva.get("usuario")
+            or f"Usuario #{reserva.get('id_usuario')}",
             "Quadra": reserva.get("espaco"),
             "Data": reserva.get("data"),
             "Inicio": reserva.get("hora_inicio"),
@@ -1964,7 +2053,9 @@ def render_owner_reservas(token: str) -> None:
 
 def render_owner_agenda(token: str) -> None:
     page_header("Agenda do dia", "Visao diaria das reservas das suas quadras.")
-    data_agenda = st.date_input("Data da agenda", value=date.today(), format="DD/MM/YYYY")
+    data_agenda = st.date_input(
+        "Data da agenda", value=date.today(), format="DD/MM/YYYY"
+    )
     reservas, error = get_owner_reservas(token, data_agenda)
     if error:
         st.warning(error)
@@ -2038,7 +2129,9 @@ def render_owner_horarios(token: str, espacos: list[dict]) -> None:
 
     st.subheader("Adicionar horario")
     selected = st.selectbox("Quadra", options=espacos, format_func=lambda e: e["nome"])
-    dia = st.selectbox("Dia da semana", options=list(range(7)), format_func=weekday_label)
+    dia = st.selectbox(
+        "Dia da semana", options=list(range(7)), format_func=weekday_label
+    )
     col_1, col_2 = st.columns(2)
     with col_1:
         abertura = st.time_input("Abertura", value=time(6, 0), step=1800)
@@ -2084,11 +2177,20 @@ def render_owner_bloqueios(token: str, espacos: list[dict]) -> None:
         return
 
     st.subheader("Adicionar bloqueio")
-    selected = st.selectbox("Quadra", options=espacos, format_func=lambda e: e["nome"], key="bloqueio_espaco")
-    data_bloqueio = st.date_input("Data", value=date.today(), min_value=date.today(), format="DD/MM/YYYY")
+    selected = st.selectbox(
+        "Quadra",
+        options=espacos,
+        format_func=lambda e: e["nome"],
+        key="bloqueio_espaco",
+    )
+    data_bloqueio = st.date_input(
+        "Data", value=date.today(), min_value=date.today(), format="DD/MM/YYYY"
+    )
     col_1, col_2 = st.columns(2)
     with col_1:
-        inicio = st.time_input("Inicio", value=time(12, 0), step=1800, key="bloqueio_inicio")
+        inicio = st.time_input(
+            "Inicio", value=time(12, 0), step=1800, key="bloqueio_inicio"
+        )
     with col_2:
         fim = st.time_input("Fim", value=time(13, 0), step=1800, key="bloqueio_fim")
     motivo = st.text_input("Motivo")
@@ -2228,7 +2330,11 @@ def render_owner_navigation() -> str:
     current_page = st.session_state.get("owner_page", "Mapa")
     with st.sidebar:
         st.caption("Navegacao")
-        if st.button("Mapa", use_container_width=True, type="primary" if current_page == "Mapa" else "secondary"):
+        if st.button(
+            "Mapa",
+            use_container_width=True,
+            type="primary" if current_page == "Mapa" else "secondary",
+        ):
             st.session_state["owner_page"] = "Mapa"
             st.rerun()
         if st.button(

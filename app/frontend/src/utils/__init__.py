@@ -1,2 +1,1 @@
 """Frontend utility helpers."""
-

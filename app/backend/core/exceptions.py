@@ -9,7 +9,9 @@ from app.backend.core.logging import log_error
 class AppError(Exception):
     """Base controlled application error."""
 
-    def __init__(self, message: str, *, status_code: int = 400, code: str = "app_error"):
+    def __init__(
+        self, message: str, *, status_code: int = 400, code: str = "app_error"
+    ):
         super().__init__(message)
         self.message = message
         self.status_code = status_code
@@ -31,4 +33,3 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=exc.status_code,
             content={"detail": exc.message, "code": exc.code},
         )
-

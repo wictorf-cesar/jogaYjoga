@@ -12,4 +12,3 @@ def get_public_venues(db: Session) -> list[Espaco]:
 
 def get_owner_venues(db: Session, owner_id: int) -> list[Espaco]:
     return list_owner_venues(db, owner_id)
-

@@ -12,4 +12,3 @@ def get_database_session() -> Generator[Session, None, None]:
 
 
 __all__ = ["get_database_session", "get_db"]
-

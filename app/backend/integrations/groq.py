@@ -13,4 +13,3 @@ __all__ = [
     "test_groq_connection",
     "validate_groq_environment",
 ]
-
