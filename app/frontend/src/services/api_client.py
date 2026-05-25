@@ -5,7 +5,7 @@ from typing import Any
 
 import requests
 
-API_URL = os.getenv("JOGAYJOGA_API_URL", "http://localhost:8000").rstrip("/")
+API_URL = os.getenv("JOGAYJOGA_API_URL", "https://jogayjoga.onrender.com").rstrip("/")
 DEFAULT_TIMEOUT_SECONDS = 10
 
 

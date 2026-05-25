@@ -14,6 +14,14 @@ SessionLocal = sessionmaker(
 
 
 def ensure_sqlite_columns() -> None:
+    """Add missing columns to an existing SQLite database.
+
+    This is a no-op when running against PostgreSQL because migrations
+    are expected to handle schema changes there.
+    """
+    if not DBConfig.IS_SQLITE:
+        return
+
     inspector = inspect(DBConfig.engine)
     if "usuarios" not in inspector.get_table_names():
         return

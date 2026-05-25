@@ -13,7 +13,7 @@ import streamlit as st
 from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 
-API_URL = os.getenv("JOGAYJOGA_API_URL", "http://localhost:8000").rstrip("/")
+API_URL = os.getenv("JOGAYJOGA_API_URL", "https://jogayjoga.onrender.com").rstrip("/")
 BASE_DIR = Path(__file__).resolve().parent
 LOGO_PATH = BASE_DIR / "assets" / "logo.png"
 MAP_CENTER = [-8.0200, -34.9300]
