@@ -1,15 +1,20 @@
-venv/
+# Python-generated files
 __pycache__/
-*.pyc
-*.db
-.DS_Store
-# PNGs locais (screenshots etc)
-/*.png
-frontend/logo.png
-COMO_RODAR.md
-CONTEXTO_PROJETO.md
-DECISOES_ARQUITETURA.md
-DEPLOY_OPCOES.md
-PLANO_EXECUCAO.md
-LGPD_RESPOSTAS.md
-*.docx
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Local runtime logs
+logs/
+
+# Local environment secrets
+.env
+
+# Local workspace notes and generated database
+context.md
+db/*.db
