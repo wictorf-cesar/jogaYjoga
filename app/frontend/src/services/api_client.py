@@ -6,7 +6,7 @@ from typing import Any
 import requests
 
 API_URL = os.getenv("JOGAYJOGA_API_URL", "https://jogayjoga.onrender.com").rstrip("/")
-DEFAULT_TIMEOUT_SECONDS = 10
+DEFAULT_TIMEOUT_SECONDS = 45  # Render free tier cold start can take ~30s
 
 
 def auth_headers(token: str | None = None) -> dict[str, str] | None:
