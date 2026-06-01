@@ -37,9 +37,34 @@ def ensure_sqlite_columns() -> None:
             )
 
 
-def init_db() -> None:
-    Base.metadata.create_all(bind=DBConfig.engine)
-    ensure_sqlite_columns()
+def init_db(*, retries: int = 5, delay: float = 2.0) -> None:
+    """Create all tables, retrying on transient DB connection errors.
+
+    Render free-tier PostgreSQL may be asleep when the app starts —
+    retry a few times before giving up.
+    """
+    import time
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    for attempt in range(1, retries + 1):
+        try:
+            Base.metadata.create_all(bind=DBConfig.engine)
+            ensure_sqlite_columns()
+            return
+        except Exception as exc:
+            if attempt == retries:
+                raise
+            logger.warning(
+                "init_db attempt %d/%d failed: %s — retrying in %.1fs",
+                attempt,
+                retries,
+                exc,
+                delay,
+            )
+            time.sleep(delay)
+            delay *= 2  # exponential backoff
 
 
 def get_db() -> Generator[Session, None, None]:
