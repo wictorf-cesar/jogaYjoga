@@ -1659,9 +1659,7 @@ def render_chatbot_page(token: str) -> None:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-        prompt = st.chat_input(
-            "Ex: Qual a quadra mais barata para futebol em Recife?"
-        )
+        prompt = st.chat_input("Ex: Qual a quadra mais barata para futebol em Recife?")
         if prompt:
             add_chat_message("user", prompt)
             with st.spinner("Buscando e gerando resposta..."):
