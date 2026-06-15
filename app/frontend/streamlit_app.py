@@ -440,6 +440,11 @@ def parse_message_with_ai(
     )
 
 
+def rag_chat(message: str) -> tuple[dict | None, str | None]:
+    """Send a message to the RAG chatbot endpoint (no auth required)."""
+    return post_api("/ai/chat", {"message": message})
+
+
 def get_my_reservas(token: str) -> tuple[list[dict], str | None]:
     data, error = get_api("/me/reservas", token=token)
     if error:
@@ -1625,29 +1630,51 @@ def handle_chat_message(token: str, message: str) -> str:
     return "Posso ajudar a buscar quadras, ver horarios, reservar, cancelar, favoritar ou explicar pagamento Pix."
 
 
+def handle_rag_message(message: str) -> str:
+    """Send user message to RAG endpoint and return the reply."""
+    data, error = rag_chat(message)
+    if error:
+        return f"Erro ao consultar o assistente: {error}"
+    if not data:
+        return "Nao consegui obter uma resposta. Tente novamente."
+    return data.get("reply", "Sem resposta.")
+
+
 def render_chatbot_page(token: str) -> None:
     page_header(
-        "Assistente de reservas",
-        "Converse de forma guiada para encontrar quadras e reservar horarios.",
+        "Assistente jogaYjoga",
+        "Pergunte sobre quadras, precos, esportes e localizacao. Uso de IA com RAG.",
     )
     init_chat_state()
 
     with st.container(border=True):
         st.caption(
-            "Escopo: reservas, quadras, horarios, favoritos e pagamentos do app."
+            "\U0001f50d Busca semantica + \U0001f916 IA generativa (RAG) "
+            "| Escopo: quadras esportivas na regiao metropolitana do Recife."
         )
-        provider = (st.session_state.get("last_ai_parse") or {}).get(
-            "provider", "aguardando mensagem"
-        )
-        st.caption(f"Parser ativo: {provider}")
+        provider = st.session_state.get("rag_provider", "aguardando mensagem")
+        st.caption(f"Provider: {provider}")
+
         for message in st.session_state["chat_messages"]:
             with st.chat_message(message["role"]):
-                st.write(message["content"])
+                st.markdown(message["content"])
 
-        prompt = st.chat_input("Ex: Quero reservar Beach Tennis em Recife amanha")
+        prompt = st.chat_input(
+            "Ex: Qual a quadra mais barata para futebol em Recife?"
+        )
         if prompt:
             add_chat_message("user", prompt)
-            answer = handle_chat_message(token, prompt)
+            with st.spinner("Buscando e gerando resposta..."):
+                data, error = rag_chat(prompt)
+            if error:
+                answer = f"Erro ao consultar o assistente: {error}"
+                st.session_state["rag_provider"] = "erro"
+            elif not data:
+                answer = "Nao consegui obter uma resposta. Tente novamente."
+                st.session_state["rag_provider"] = "erro"
+            else:
+                answer = data.get("reply", "Sem resposta.")
+                st.session_state["rag_provider"] = data.get("provider", "rag")
             add_chat_message("assistant", answer)
             st.rerun()
 
