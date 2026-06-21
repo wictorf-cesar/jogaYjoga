@@ -31,6 +31,7 @@ from app.backend.services.groq_service import (
     validate_groq_environment,
 )
 from app.backend.routes.chat import router as chat_router
+from app.backend.routes.rag_chat import router as rag_chat_router
 from app.backend.domain.reservations.service import (
     get_owner_reservations,
     get_user_reservations,
@@ -79,6 +80,7 @@ from app.schemas.api import (
 
 app = FastAPI(title="Joga & Joga API", version="0.1.0")
 app.include_router(chat_router)
+app.include_router(rag_chat_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -174,6 +176,22 @@ def startup() -> None:
     log_groq_environment()
     init_db()
     ensure_seed_data()
+    _build_rag_embeddings()
+
+
+def _build_rag_embeddings() -> None:
+    """Generate RAG embeddings for all courts on startup."""
+    try:
+        from app.backend.services import rag_service
+
+        with SessionLocal() as db:
+            rag_service.build_embeddings(db)
+    except ImportError:
+        logging.getLogger(__name__).warning(
+            "sentence-transformers nao instalado — RAG desabilitado."
+        )
+    except Exception as exc:
+        logging.getLogger(__name__).error("Erro ao gerar embeddings RAG: %s", exc)
 
 
 @app.middleware("http")
