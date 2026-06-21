@@ -263,9 +263,19 @@ def chat(query: str, db: Session | None = None) -> dict[str, Any]:
         }
 
     if not is_ready():
-        # Try to build embeddings on the fly if DB session provided
+        # Try to build embeddings on the fly if DB session provided.
+        # build_embeddings can raise ImportError if sentence-transformers
+        # is not installed (startup may have swallowed it) — absorb it here
+        # so we degrade to the loading fallback instead of a 500.
         if db is not None:
-            build_embeddings(db)
+            try:
+                build_embeddings(db)
+            except ImportError as exc:
+                logger.warning(
+                    "Nao foi possivel gerar embeddings (%s). "
+                    "RAG indisponivel ate instalar sentence-transformers.",
+                    exc,
+                )
         if not is_ready():
             return {
                 "reply": (
