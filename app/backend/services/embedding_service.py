@@ -8,7 +8,9 @@ Loads the model once on first use (lazy singleton) and provides:
 from __future__ import annotations
 
 import logging
+import os
 import time
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -20,6 +22,31 @@ MODEL_NAME = "all-MiniLM-L6-v2"
 _model: Any = None
 
 
+def _resolve_cache_dir() -> str:
+    """Pick a persistent cache dir for the model download.
+
+    Priority:
+    1. SENTENCE_TRANSFORMERS_HOME env var (if set by the operator)
+    2. A project-local ``.cache/sentence-transformers`` dir inside the repo
+
+    The project-local fallback matters on PaaS like Render, where the repo
+    dir (/opt/render/project) persists between deploys but the default
+    ~/.cache lives on the ephemeral filesystem and is lost on every spin-up.
+    Pinning the cache here means the ~90MB model is downloaded once and reused
+    across cold starts instead of being refetched every time.
+    """
+    env_home = os.getenv("SENTENCE_TRANSFORMERS_HOME")
+    if env_home:
+        Path(env_home).mkdir(parents=True, exist_ok=True)
+        return env_home
+
+    # Project-local fallback: <repo>/.cache/sentence-transformers
+    repo_root = Path(__file__).resolve().parents[3]
+    cache_dir = repo_root / ".cache" / "sentence-transformers"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return str(cache_dir)
+
+
 def _get_model() -> Any:
     """Lazy-load the SentenceTransformer model (singleton)."""
     global _model
@@ -29,9 +56,10 @@ def _get_model() -> Any:
     try:
         from sentence_transformers import SentenceTransformer
 
-        logger.info("Carregando modelo %s ...", MODEL_NAME)
+        cache_dir = _resolve_cache_dir()
+        logger.info("Carregando modelo %s (cache=%s) ...", MODEL_NAME, cache_dir)
         started = time.perf_counter()
-        _model = SentenceTransformer(MODEL_NAME)
+        _model = SentenceTransformer(MODEL_NAME, cache_folder=cache_dir)
         elapsed = round(time.perf_counter() - started, 2)
         logger.info("Modelo %s carregado em %.2fs", MODEL_NAME, elapsed)
         return _model
