@@ -198,7 +198,7 @@ def _build_rag_embeddings() -> None:
                 rag_service.build_embeddings(db)
         except ImportError:
             logging.getLogger(__name__).warning(
-                "sentence-transformers nao instalado — RAG desabilitado."
+                "fastembed nao instalado — RAG desabilitado."
             )
         except Exception as exc:
             logging.getLogger(__name__).error("Erro ao gerar embeddings RAG: %s", exc)
