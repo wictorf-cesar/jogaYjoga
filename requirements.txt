@@ -1,19 +1,19 @@
 # Auto-generated from pyproject.toml for Streamlit Cloud compatibility.
 # Streamlit Cloud does not read pyproject.toml — it needs this file.
 #
-# Torch is pinned to the CPU-only build via the --extra-index-url below so that
-# deployments on CPU-only hosts (Render free tier, Streamlit Cloud) do NOT pull
-# the multi-GB CUDA/nvidia-* wheels. The CPU wheel is ~190MB vs ~3GB for the
-# default CUDA build, which makes the difference between a deploy that fits in
-# the free-tier build budget and one that times out / runs out of disk.
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.12.1+cpu
+# RAG embeddings run on fastembed (ONNX runtime) instead of
+# sentence-transformers+torch. The ONNX build keeps the runtime memory
+# footprint at ~120-180MB vs ~500MB for torch, which is what makes the
+# chatbot fit in the Render free tier (512MB) without OOMing. Same model
+# (all-MiniLM-L6-v2), same embeddings, just a lighter engine.
 fastapi>=0.136.1
+fastembed>=0.3.0
 folium>=0.20.0
 geopy>=2.4.1
 groq>=0.31.0
 gunicorn>=26.0.0
 loguru>=0.7.3
+numpy>=2.0.0
 pandas>=3.0.3
 plotly>=6.7.0
 psycopg2-binary>=2.9.12
@@ -21,6 +21,4 @@ requests>=2.34.2
 sqlalchemy>=2.0.49
 streamlit>=1.57.0
 streamlit-folium>=0.27.2
-numpy>=2.0.0
-sentence-transformers>=3.0.0
 uvicorn>=0.38.0
