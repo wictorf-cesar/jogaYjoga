@@ -353,3 +353,41 @@ def chat(query: str, db: Session | None = None) -> dict[str, Any]:
             "error": str(exc),
             "courts_used": len(courts),
         }
+
+    except Exception as exc:
+        # Catch native groq SDK errors (groq.AuthenticationError,
+        # RateLimitError, APITimeoutError, APIConnectionError, APIStatusError)
+        # and any other failure from the create() call. These are NOT
+        # subclasses of GroqServiceError, so without this they would escape
+        # as an unhandled 500 with a full stacktrace in the response.
+        name = type(exc).__name__
+        if name == "AuthenticationError":
+            logger.error("RAG Groq auth error: %s", exc)
+            reply = (
+                "O assistente de IA esta temporariamente indisponivel. "
+                "Tente novamente mais tarde."
+            )
+        elif name == "RateLimitError":
+            logger.warning("RAG Groq rate limit: %s", exc)
+            reply = (
+                "O assistente recebeu muitas requisicoes agora. "
+                "Aguarde alguns segundos e tente novamente."
+            )
+        elif name in ("APITimeoutError", "APIConnectionError"):
+            logger.warning("RAG Groq connection/timeout: %s", exc)
+            reply = (
+                "Tive dificuldade para falar com o servico de IA. "
+                "Tente novamente em instantes."
+            )
+        else:
+            logger.error("RAG Groq unexpected error (%s): %s", name, exc)
+            reply = (
+                "Desculpe, o assistente esta com dificuldades no momento. "
+                "Tente novamente em instantes."
+            )
+        return {
+            "reply": reply,
+            "provider": "error",
+            "error": f"{name}: {exc}",
+            "courts_used": len(courts),
+        }
