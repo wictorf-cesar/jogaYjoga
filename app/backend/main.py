@@ -180,18 +180,30 @@ def startup() -> None:
 
 
 def _build_rag_embeddings() -> None:
-    """Generate RAG embeddings for all courts on startup."""
-    try:
-        from app.backend.services import rag_service
+    """Generate RAG embeddings for all courts on startup.
 
-        with SessionLocal() as db:
-            rag_service.build_embeddings(db)
-    except ImportError:
-        logging.getLogger(__name__).warning(
-            "sentence-transformers nao instalado — RAG desabilitado."
-        )
-    except Exception as exc:
-        logging.getLogger(__name__).error("Erro ao gerar embeddings RAG: %s", exc)
+    Runs in a background thread so it never blocks the FastAPI startup event —
+    on PaaS like Render, blocking startup prevents uvicorn from binding $PORT
+    within the health-check window and the deploy is killed ("no open ports").
+    The /ai/rag/health endpoint reports readiness and /ai/chat degrades to a
+    "loading" reply until embeddings are ready.
+    """
+    import threading
+
+    def _worker() -> None:
+        try:
+            from app.backend.services import rag_service
+
+            with SessionLocal() as db:
+                rag_service.build_embeddings(db)
+        except ImportError:
+            logging.getLogger(__name__).warning(
+                "sentence-transformers nao instalado — RAG desabilitado."
+            )
+        except Exception as exc:
+            logging.getLogger(__name__).error("Erro ao gerar embeddings RAG: %s", exc)
+
+    threading.Thread(target=_worker, name="rag-embeddings", daemon=True).start()
 
 
 @app.middleware("http")
