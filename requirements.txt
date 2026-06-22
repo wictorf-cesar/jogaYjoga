@@ -1,5 +1,13 @@
 # Auto-generated from pyproject.toml for Streamlit Cloud compatibility.
 # Streamlit Cloud does not read pyproject.toml — it needs this file.
+#
+# Torch is pinned to the CPU-only build via the --extra-index-url below so that
+# deployments on CPU-only hosts (Render free tier, Streamlit Cloud) do NOT pull
+# the multi-GB CUDA/nvidia-* wheels. The CPU wheel is ~190MB vs ~3GB for the
+# default CUDA build, which makes the difference between a deploy that fits in
+# the free-tier build budget and one that times out / runs out of disk.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.12.1+cpu
 fastapi>=0.136.1
 folium>=0.20.0
 geopy>=2.4.1
